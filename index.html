@@ -7,18 +7,78 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .tab-active { background-color: #10b981 !important; color: white !important; transform: scale(1.05); }
         .final-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #fbbf24; color: white; }
-        .bracket-line { height: 2px; background: #cbd5e1; flex-grow: 1; min-width: 20px; }
+        
+        /* 砂鍋火鍋特效 */
+        @keyframes stewing {
+            0% { box-shadow: 0 0 5px #f97316; border-color: #f97316; }
+            50% { box-shadow: 0 0 25px #ea580c, inset 0 0 20px #7c2d12; border-color: #fbbf24; }
+            100% { box-shadow: 0 0 5px #f97316; border-color: #f97316; }
+        }
+        .stewing-effect { animation: stewing 1.5s infinite ease-in-out; border-width: 3px !important; }
+        
+        /* === Page 3 創意視覺效果 === */
+        
+        /* 動態背景幾何圖形 */
+        #page-bracket {
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center center;
+            animation: bgMove 60s linear infinite;
+        }
+        @keyframes bgMove { from { background-position: 0 0; } to { background-position: 500px 500px; } }
+
+        /* 玻璃帷幕卡片 */
+        .bracket-node {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bracket-node:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* 霓虹邊框 */
+        .neon-border-emerald { border-left: 6px solid #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+        .neon-border-amber { border-left: 6px solid #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); background: rgba(30, 41, 59, 0.8) !important; color: white !important;}
+        .neon-border-amber span { color: #f1f5f9 !important; } /* 修正 Amber 卡片內的文字顏色 */
+        .neon-border-orange { border-left: 6px solid #f97316; box-shadow: 0 0 10px rgba(249, 115, 22, 0.2); }
+
+        /* 動態能量連線 */
+        .bracket-line-flow {
+            height: 3px;
+            background: linear-gradient(90deg, #cbd5e1, #10b981, #cbd5e1);
+            background-size: 200% 100%;
+            animation: lineFlow 3s linear infinite;
+            position: relative;
+            flex-grow: 1;
+            min-width: 40px;
+        }
+        .bracket-line-flow::after {
+            content: '➤';
+            position: absolute;
+            right: -5px;
+            top: -7px;
+            color: #10b981;
+            font-size: 14px;
+            animation: arrowPulse 1.5s infinite;
+        }
+        @keyframes lineFlow { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+        @keyframes arrowPulse { 0%, 100% { opacity: 0.5; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="bg-slate-900 text-white py-12 text-center shadow-xl">
-        <h1 class="text-4xl font-black tracking-tighter text-emerald-400 italic">🍲 砂鍋盃 LIVE</h1>
-        <p class="text-[10px] text-slate-400 mt-2 font-bold tracking-[0.4em]">ECO POT LIVE</p>
+    <header class="bg-slate-900 text-white py-12 text-center shadow-xl relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: url('data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3Y%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3Y%3Cpath d='M0 0h10v10H0V0zm10 10h10v10H10V10zM10 0h10v10H10V0zM0 10h10v10H0V10z'/%3Y%3C/g%3Y%3C/svg%3Y');"></div>
+        <h1 class="text-5xl font-black tracking-tighter text-emerald-400 italic relative z-10">🍲 砂鍋盃 LIVE</h1>
+        <p class="text-[11px] text-slate-400 mt-3 font-bold tracking-[0.5em] relative z-10">ECO POT LIVE</p>
     </header>
 
     <nav class="max-w-md mx-auto px-4 -mt-8 sticky top-4 z-50">
@@ -29,16 +89,17 @@
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 mt-6">
+    <main class="max-w-5xl mx-auto p-4 mt-6">
         <div id="loading-msg" class="text-center py-20 text-slate-400 font-bold">📡 同步數據中...</div>
         <section id="page-matches" class="hidden space-y-4"></section>
         <section id="page-standing" class="hidden grid gap-6 md:grid-cols-2"></section>
-        <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar">
-            <div id="bracket-flow" class="min-w-[900px] py-10 space-y-24"></div>
+        <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar rounded-3xl p-6 md:p-10 border border-slate-200">
+            <div id="bracket-flow" class="min-w-[1000px] py-10 space-y-32"></div>
         </section>
     </main>
 
     <script>
+        // === JS 邏輯保持不變 ===
         const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
         let allData = [];
@@ -74,12 +135,13 @@
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
-                const isFinalMatch = m.type.match(/決賽|季殿/);
-                const isSemi = m.type.match(/四強/);
-                const cardStyle = (isFinalMatch || isSemi) ? 'final-card shadow-amber-500/20' : 'bg-white border-slate-200';
-                return `<div class="${cardStyle} p-5 rounded-2xl shadow-lg border relative overflow-hidden">
+                const isElite = m.type.match(/四強|決賽|季殿/);
+                const isLive = m.status === '進行中';
+                const cardStyle = isElite ? 'final-card shadow-amber-500/20' : 'bg-white border-slate-200';
+                const extraClass = (isElite && isLive) ? 'stewing-effect' : '';
+                return `<div class="${cardStyle} ${extraClass} p-5 rounded-2xl shadow-lg border relative overflow-hidden transition-all duration-500">
                     <div class="flex justify-between items-center text-[10px] font-black mb-3 pb-2 border-b border-current/10">
-                        <span>${isFinalMatch?'🏆 ':''} ${m.id} | ${m.type}</span>
+                        <span>${isElite?'🏆 ':''} ${m.id} | ${m.type}</span>
                         <span class="opacity-60 font-bold">🕒 ${m.time} | 📍 ${m.court}</span>
                     </div>
                     <div class="flex items-center justify-between gap-4">
@@ -89,7 +151,7 @@
                     </div>
                     <div class="mt-4 flex justify-between items-center text-[10px]">
                         <div class="opacity-50 italic">裁判：${m.ref}</div>
-                        <div class="${m.status==='進行中'?'text-orange-400 animate-pulse font-black':'font-bold opacity-60'}">${m.status}</div>
+                        <div class="${isLive ? 'text-orange-400 animate-pulse font-black' : 'font-bold opacity-60'}">${m.status}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -105,13 +167,11 @@
                 { title: "混雙 B組", type: "混雙", sub: "B", top: 1 },
                 { title: "混雙 C組", type: "混雙", sub: "C", top: 1 }
             ];
-
             groupWinners = {};
-
             container.innerHTML = configs.map(cfg => {
                 const stats = {};
                 const groupMatches = allData.filter(m => m.type === cfg.type && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿/));
-
+                const isGroupFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
                 groupMatches.forEach(m => {
                     [m.teamA, m.teamB].forEach(t => { 
                         if(t && t!=='TBD' && !stats[t]) stats[t] = { name: t, win: 0, totalScore: 0 }; 
@@ -123,7 +183,6 @@
                         else if(m.scoreB > m.scoreA) stats[m.teamB].win++;
                     }
                 });
-
                 const sorted = Object.values(stats).sort((a, b) => {
                     if (b.win !== a.win) return b.win - a.win;
                     const tiedTeams = Object.values(stats).filter(x => x.win === a.win);
@@ -135,25 +194,25 @@
                     }
                     return b.totalScore - a.totalScore;
                 });
-
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
-
                 if (sorted.length === 0) return "";
                 return `<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-slate-50 px-4 py-2 border-b text-[10px] font-black text-slate-500 italic flex justify-between items-center">
-                        <span>🏆 ${cfg.title}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded italic font-bold">取前 ${cfg.top} 晉級</span>
+                        <span>🏆 ${cfg.title}</span>
+                        <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded italic font-bold">取前 ${cfg.top} 晉級</span>
                     </div>
                     <table class="w-full text-sm">
                         ${sorted.map((d, i) => {
-                            const isQualified = i < cfg.top;
-                            return `<tr class="border-b border-slate-50 last:border-0 ${!isQualified ? 'opacity-30' : ''}">
+                            const isTop = i < cfg.top;
+                            const fadeClass = (isGroupFinished && !isTop) ? 'opacity-20 grayscale' : '';
+                            return `<tr class="border-b border-slate-50 last:border-0 transition-opacity duration-1000 ${fadeClass}">
                                 <td class="p-3 font-bold text-slate-600">
                                     <div class="flex flex-col">
-                                        <span class="text-[9px] text-emerald-600 font-black">${isQualified ? '🔥 晉級預定' : ''}</span>
+                                        <span class="text-[9px] text-emerald-600 font-black">${isTop ? '🔥 晉級預定' : ''}</span>
                                         <span>${i+1}. ${d.name}</span>
                                     </div>
                                 </td>
-                                <td class="p-3 text-right font-black ${isQualified ? 'text-emerald-600' : 'text-slate-300'}">
+                                <td class="p-3 text-right font-black ${isTop ? 'text-emerald-600' : 'text-slate-300'}">
                                     ${d.win} 點
                                     <div class="text-[8px] font-normal text-slate-400">總分: ${d.totalScore}</div>
                                 </td>
@@ -167,26 +226,20 @@
         function getDisplayName(matchObj, field, fallback) {
             const val = matchObj[field];
             if (!val || val === "" || val === "TBD") return fallback;
-            
-            // 關鍵字過濾：如果填寫內容包含「組」、「第一」、「第二」、「勝隊」、「敗隊」，則啟用自動抓取
             const autoKeywords = ["組", "第一", "第二", "勝隊", "敗隊", "待定"];
-            const isPlaceholder = autoKeywords.some(kw => val.includes(kw));
-            
-            if (isPlaceholder) return fallback;
+            if (autoKeywords.some(kw => val.includes(kw))) return fallback;
             return val;
         }
 
         function renderBracketFlow() {
             const flow = document.getElementById('bracket-flow');
             flow.innerHTML = "";
-
             ["女雙", "混雙"].forEach((cat) => {
                 let s1_A_def = cat === "女雙" ? `A組第一 (${groupWinners["女雙A"]?.[0] || '?'})` : `A組第一 (${groupWinners["混雙A"]?.[0] || '?'})`;
                 let s1_B_def = cat === "女雙" ? `B組第二 (${groupWinners["女雙B"]?.[1] || '?'})` : `C組第一 (${groupWinners["混雙C"]?.[0] || '?'})`;
                 let s2_A_def = cat === "女雙" ? `B組第一 (${groupWinners["女雙B"]?.[0] || '?'})` : `B組第一 (${groupWinners["混雙B"]?.[0] || '?'})`;
                 let s2_B_def = cat === "女雙" ? `A組第二 (${groupWinners["女雙A"]?.[1] || '?'})` : `A組第二 (${groupWinners["混雙A"]?.[1] || '?'})`;
 
-                // 抓取四強賽 1 敗者與四強賽 2 敗者的邏輯 (用於季殿軍)
                 const s1 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("1")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
                 const s2 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("2")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
                 const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/)) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
@@ -198,23 +251,32 @@
                 let t_B_def = s2.status === "已結束" ? (s2.scoreA < s2.scoreB ? s2.teamA : s2.teamB) : "四強 2 敗者";
 
                 flow.innerHTML += `<div class="bracket-container">
-                    <h3 class="text-center font-black text-slate-800 text-xl mb-10 italic uppercase tracking-widest">${cat} 決賽之路</h3>
+                    <h3 class="text-center font-black text-slate-800 text-3xl mb-16 italic uppercase tracking-widest relative">
+                        <span class="absolute -left-8 top-1/2 w-20 h-1 bg-emerald-400"></span>
+                        ${cat} 決賽之路
+                        <span class="absolute -right-8 top-1/2 w-20 h-1 bg-emerald-400"></span>
+                    </h3>
                     <div class="flex items-center justify-between gap-0">
-                        <div class="w-1/4">${buildNode(s1, "四強賽 1", false, false, s1_A_def, s1_B_def)}</div>
-                        <div class="bracket-line"></div>
-                        <div class="w-1/3 flex flex-col gap-10">
-                            ${buildNode(f, "🏆 冠亞軍總決賽", true, false, f_A_def, f_B_def)}
-                            ${buildNode(third, "🏅 季殿軍爭奪戰", false, true, t_A_def, t_B_def)}
+                        <div class="w-1/4">${buildNode(s1, "四強賽 1", "emerald", s1_A_def, s1_B_def)}</div>
+                        <div class="bracket-line-flow"></div>
+                        <div class="w-2/5 flex flex-col gap-16 relative">
+                            <div class="absolute inset-0 border-2 border-dashed border-amber-300/50 rounded-3xl -m-6 z-0"></div>
+                            <div class="relative z-10">${buildNode(f, "🏆 冠亞軍總決賽", "amber", f_A_def, f_B_def)}</div>
+                            <div class="relative z-10">${buildNode(third, "🏅 季殿軍爭奪戰", "orange", t_A_def, t_B_def)}</div>
                         </div>
-                        <div class="bracket-line"></div>
-                        <div class="w-1/4">${buildNode(s2, "四強賽 2", false, false, s2_A_def, s2_B_def)}</div>
+                        <div class="bracket-line-flow" style="transform: scaleX(-1);"></div>
+                        <div class="w-1/4">${buildNode(s2, "四強賽 2", "emerald", s2_A_def, s2_B_def)}</div>
                     </div>
                 </div>`;
             });
         }
 
-        function buildNode(m, label, isFinal, isThird, defA, defB) {
+        // 修正：參數類型變更，直接傳入樣式關鍵字
+        function buildNode(m, label, styleType, defA, defB) {
             let resA = "", resB = "";
+            let isFinal = styleType === "amber";
+            let isThird = styleType === "orange";
+
             if (m.status === "已結束") {
                 if (isFinal) {
                     resA = m.scoreA > m.scoreB ? "🥇 冠軍" : "🥈 亞軍";
@@ -224,26 +286,28 @@
                     resB = m.scoreB > m.scoreA ? "🥉 季軍" : "殿軍";
                 }
             }
-            
             const nameA = getDisplayName(m, 'teamA', defA);
             const nameB = getDisplayName(m, 'teamB', defB);
+            
+            // 根據類型選擇邊框樣式
+            const neonClass = styleType === "amber" ? "neon-border-amber" : (styleType === "orange" ? "neon-border-orange" : "neon-border-emerald");
 
-            const border = isFinal ? 'border-amber-400 ring-2 ring-amber-400/20' : (isThird ? 'border-orange-400' : 'border-emerald-500');
-            return `<div class="bg-white rounded-xl shadow-xl p-4 border-l-8 ${border} transform transition-all hover:scale-105">
-                <div class="text-[9px] font-black text-slate-400 mb-3 flex justify-between items-center">
-                    <span class="bg-slate-100 px-2 py-0.5 rounded">${label}</span>
-                    <span class="${m.status==='進行中'?'text-orange-500 animate-pulse':''}">${m.status}</span>
+            return `<div class="bracket-node ${neonClass} rounded-2xl shadow-xl p-5 relative overflow-hidden">
+                <div class="text-[10px] font-black text-slate-400 mb-4 flex justify-between items-center relative z-10">
+                    <span class="bg-white/50 px-3 py-1 rounded-full shadow-inner">${label}</span>
+                    <span class="${m.status==='進行中'?'text-orange-500 animate-pulse':'font-bold'}">${m.status}</span>
                 </div>
-                <div class="space-y-2 text-sm font-black text-slate-700">
-                    <div class="flex justify-between items-center">
-                        <span class="truncate mr-2">${nameA}</span>
-                        <span class="text-emerald-600 tabular-nums">${m.scoreA} <span class="text-[10px] text-amber-500">${resA}</span></span>
+                <div class="space-y-3 text-base font-black text-slate-700 relative z-10">
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="truncate">${nameA}</span>
+                        <span class="text-emerald-600 tabular-nums text-xl flex-shrink-0">${m.scoreA} <span class="text-[11px] text-amber-500 font-bold ml-1">${resA}</span></span>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="truncate mr-2">${nameB}</span>
-                        <span class="text-emerald-600 tabular-nums">${m.scoreB} <span class="text-[10px] text-amber-500">${resB}</span></span>
+                    <div class="flex justify-between items-center gap-2">
+                        <span class="truncate">${nameB}</span>
+                        <span class="text-emerald-600 tabular-nums text-xl flex-shrink-0">${m.scoreB} <span class="text-[11px] text-amber-500 font-bold ml-1">${resB}</span></span>
                     </div>
                 </div>
+                <div class="absolute -right-10 -bottom-10 text-8xl opacity-05 z-0 font-black italic">${m.status === '已結束' ? '✔' : '?'}</div>
             </div>`;
         }
 
@@ -254,6 +318,14 @@
             });
             document.getElementById(`page-${p}`).classList.remove('hidden');
             document.getElementById(`btn-${p}`).classList.add('tab-active');
+            
+            // 如果切換到 Bracket 頁面，自動捲動到中間 (因為採用左右對稱佈局)
+            if(p === 'bracket') {
+                const container = document.getElementById('page-bracket');
+                setTimeout(() => {
+                    container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2;
+                }, 100);
+            }
         }
         loadData();
         setInterval(loadData, 15000);
