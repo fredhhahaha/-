@@ -17,15 +17,6 @@
             50% { border-color: #ef4444; box-shadow: 0 0 40px rgba(239, 68, 68, 0.6); } 
         }
         .final-neon { animation: neon-flow 1.5s infinite linear; border-width: 4px !important; }
-        
-        /* 狂暴火鍋特效 */
-        @keyframes hyper-stewing {
-            0% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
-            20% { transform: translate(1px, 1px); }
-            40% { transform: translate(-1px, -1px); }
-            100% { transform: translate(0,0); }
-        }
-        .stewing-effect { animation: hyper-stewing 0.3s infinite linear; }
         .bracket-line-flow { height: 4px; background: linear-gradient(90deg, transparent, #fbbf24, transparent); background-size: 200% 100%; animation: lineFlow 1.2s linear infinite; flex-grow: 1; }
         @keyframes lineFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .bracket-node { background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); }
@@ -97,10 +88,7 @@
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isElite = m.type.match(/四強|決賽|季殿|SF|Final/i);
-                const isLive = m.status === '進行中';
-                const cardStyle = isElite ? 'bg-gradient-to-br from-slate-800 to-black border-amber-500/50' : 'bg-slate-900 border-slate-700';
-                const extraClass = (isElite && isLive) ? 'stewing-effect shadow-[0_0_20px_#f97316]' : (isLive ? 'ring-2 ring-emerald-500 shadow-lg' : '');
-                return `<div class="${cardStyle} ${extraClass} p-6 rounded-3xl border transition-all">
+                return `<div class="${isElite ? 'bg-gradient-to-br from-slate-800 to-black border-amber-500/50' : 'bg-slate-900 border-slate-700'} p-6 rounded-3xl border transition-all">
                     <div class="flex justify-between items-center text-[10px] font-black mb-4 pb-2 border-b border-white/10 text-emerald-400 uppercase">
                         <span>${isElite?'🔥 ELITE':'MATCH'} | ${m.id}</span>
                         <span class="text-slate-400">${m.time} | ${m.court}</span>
@@ -131,12 +119,22 @@
                 const isAllFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
 
                 groupMatches.forEach(m => {
-                    [m.teamA, m.teamB].forEach(t => { if(t && t!=='TBD' && !stats[t]) stats[t] = { name: t, win: 0, score: 0 }; });
+                    // 解析賽程 ID 中的編號 (如 A1-A2 解析出 A1 和 A2)
+                    const codes = m.id.split('-');
+                    
+                    if(m.teamA && m.teamA !== 'TBD' && !stats[m.teamA]) {
+                        stats[m.teamA] = { name: m.teamA, win: 0, score: 0, code: codes[0] || cfg.sub };
+                    }
+                    if(m.teamB && m.teamB !== 'TBD' && !stats[m.teamB]) {
+                        stats[m.teamB] = { name: m.teamB, win: 0, score: 0, code: codes[1] || cfg.sub };
+                    }
+
                     if(m.status === "已結束") {
                         stats[m.teamA].score += m.scoreA; stats[m.teamB].score += m.scoreB;
                         if(m.scoreA > m.scoreB) stats[m.teamA].win++; else if(m.scoreB > m.scoreA) stats[m.teamB].win++;
                     }
                 });
+
                 const sorted = Object.values(stats).sort((a, b) => (b.win !== a.win) ? (b.win - a.win) : (b.score - a.score));
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
                 if (sorted.length === 0) return "";
@@ -147,13 +145,13 @@
                         <tr class="text-[10px] text-slate-500 border-b border-white/5 font-bold uppercase"><td class="py-2">排名 / 編號</td><td class="py-2 text-right">勝點</td><td class="py-2 text-right pr-2">得分</td></tr>
                         ${sorted.map((d, i) => {
                             let medal = "";
-                            if (cfg.title === "男雙" && isAllFinished) {
-                                if (i === 0) medal = '<span class="ml-2 text-[10px] bg-amber-500 text-black px-2 py-0.5 rounded-full font-black animate-bounce">🥇 1st</span>';
-                                else if (i === 1) medal = '<span class="ml-2 text-[10px] bg-slate-400 text-black px-2 py-0.5 rounded-full font-black">🥈 2nd</span>';
+                            if (isAllFinished) {
+                                if (i === 0) medal = '<span class="ml-2 text-[10px] bg-amber-500 text-black px-1.5 py-0.5 rounded font-black">🥇 冠軍</span>';
+                                else if (i === 1) medal = '<span class="ml-2 text-[10px] bg-slate-400 text-black px-1.5 py-0.5 rounded font-black">🥈 亞軍</span>';
                             }
                             return `<tr class="border-b border-white/5 last:border-0 ${i<cfg.top?'bg-emerald-500/5':''}">
                                 <td class="py-4 font-bold ${i<cfg.top?'text-white':'text-slate-600'}">
-                                    <span class="text-slate-500 mr-2 text-xs font-mono">${cfg.sub}${i+1}</span> ${d.name}${medal}
+                                    <span class="bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded text-[10px] mr-2 font-mono">${d.code}</span>${d.name}${medal}
                                 </td>
                                 <td class="py-4 text-right font-black text-emerald-400 text-lg">${d.win}</td>
                                 <td class="py-4 text-right text-slate-400 italic pr-2">${d.score}</td>
@@ -170,17 +168,17 @@
                 if (isFinal) { resA = m.scoreA > m.scoreB ? "🥇 冠軍" : "🥈 亞軍"; resB = m.scoreB > m.scoreA ? "🥇 冠軍" : "🥈 亞軍"; }
                 else if (type === "orange") { resA = m.scoreA > m.scoreB ? "🥉 季軍" : "殿軍"; resB = m.scoreB > m.scoreA ? "🥉 季軍" : "殿軍"; }
             }
-            const finalA = getEffectiveName(m, 'teamA', curA);
-            const finalB = getEffectiveName(m, 'teamB', curB);
-            let borderStyle = isFinal ? "final-neon scale-110 z-20" : (type === "orange" ? "border-orange-500" : "border-emerald-500");
+            const fA = getEffectiveName(m, 'teamA', curA);
+            const fB = getEffectiveName(m, 'teamB', curB);
+            let bS = isFinal ? "final-neon scale-110 z-20" : (type === "orange" ? "border-orange-500" : "border-emerald-500");
             
-            return `<div class="bracket-node rounded-[2.5rem] p-8 border-2 ${borderStyle} transition-all">
-                <div class="text-[10px] font-black mb-4 flex justify-between ${isFinal?'text-amber-400':'text-slate-400'} uppercase tracking-tighter">
+            return `<div class="bracket-node rounded-[2.5rem] p-8 border-2 ${bS} transition-all">
+                <div class="text-[10px] font-black mb-4 flex justify-between ${isFinal?'text-amber-400':'text-slate-400'} uppercase tracking-widest">
                     <span>${isFinal ? '👑 ' + label : label}</span><span>${m.status}</span>
                 </div>
                 <div class="space-y-6 ${isFinal ? 'text-2xl' : 'text-xl'} font-black text-white">
-                    <div class="flex justify-between items-center"><span class="truncate w-40">${finalA}</span><span class="${isFinal?'text-amber-400':'text-emerald-400'}">${m.scoreA}<span class="text-[10px] block">${resA}</span></span></div>
-                    <div class="flex justify-between items-center"><span class="truncate w-40">${finalB}</span><span class="${isFinal?'text-amber-400':'text-emerald-400'}">${m.scoreB}<span class="text-[10px] block">${resB}</span></span></div>
+                    <div class="flex justify-between items-center"><span class="truncate w-40">${fA}</span><span class="${isFinal?'text-amber-400':'text-emerald-400'}">${m.scoreA}<span class="text-[10px] block">${resA}</span></span></div>
+                    <div class="flex justify-between items-center"><span class="truncate w-40">${fB}</span><span class="${isFinal?'text-amber-400':'text-emerald-400'}">${m.scoreB}<span class="text-[10px] block">${resB}</span></span></div>
                 </div>
             </div>`;
         }
@@ -215,7 +213,7 @@
                 let fB_a = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? rS2A : rS2B) : rS2A;
                 let tB_a = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? rS2B : rS2A) : rS2B;
 
-                flow.innerHTML += `<div class="p-10 rounded-[3rem] bg-slate-900/40 border border-white/5 mb-24">
+                flow.innerHTML += `<div class="p-10 rounded-[3rem] bg-slate-900/40 border border-white/5 mb-24 shadow-inner">
                     <h3 class="text-center font-black text-white text-3xl mb-24 italic uppercase tracking-widest">${cat} Finals Road</h3>
                     <div class="flex items-center justify-between gap-4">
                         <div class="w-1/4">${buildNode(s1, "Semi-Final 1", "emerald", s1A, s1B)}</div>
