@@ -3,20 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 官方即時看板 (終極連動版)</title>
+    <title>生態砂鍋盃 - 官方即時看板 (完全體)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: #f8fafc; scroll-behavior: smooth; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* 導航標籤特效 */
-        .tab-active { 
-            background-color: #10b981 !important; 
-            color: white !important; 
-            transform: scale(1.1); 
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); 
-        }
+        .tab-active { background-color: #10b981 !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
         
         /* 狂暴火鍋特效 */
         @keyframes hyper-stewing {
@@ -25,53 +18,37 @@
             40% { transform: translate(-2px, -1px); box-shadow: 0 0 60px #f59e0b; }
             100% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
         }
-        .stewing-effect { animation: hyper-stewing 0.3s infinite linear; border: 4px solid #fbbf24 !important; z-index: 10; }
+        .stewing-effect { animation: hyper-stewing 0.3s infinite linear; border: 4px solid #fbbf24 !important; }
 
-        /* 晉級圖能量流連線 */
-        .bracket-line-flow {
-            height: 4px;
-            background: linear-gradient(90deg, transparent, #fbbf24, transparent);
-            background-size: 200% 100%;
-            animation: lineFlow 1.2s linear infinite;
-            flex-grow: 1;
-        }
+        /* 晉級圖能量流 */
+        .bracket-line-flow { height: 4px; background: linear-gradient(90deg, transparent, #fbbf24, transparent); background-size: 200% 100%; animation: lineFlow 1.2s linear infinite; flex-grow: 1; }
         @keyframes lineFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* 霓虹邊框 (決賽專用) */
-        @keyframes neon-flow {
-            0% { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
-            50% { border-color: #ef4444; box-shadow: 0 0 35px #ef4444; }
-            100% { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
-        }
-        .final-neon { animation: neon-flow 1.5s infinite linear; border-width: 4px !important; }
-
         .bracket-node { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .final-neon { animation: neon-flow 1.5s infinite linear; border-width: 4px !important; }
+        @keyframes neon-flow { 0%, 100% { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; } 50% { border-color: #ef4444; box-shadow: 0 0 35px #ef4444; } }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="bg-slate-950 text-white py-12 text-center shadow-2xl border-b border-emerald-900/50">
-        <h1 class="text-5xl font-black tracking-tighter text-emerald-400 italic drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]">🍲 砂鍋盃 LIVE</h1>
-        <p class="text-[12px] text-slate-500 mt-4 font-bold tracking-[0.5em] uppercase">ECO POT LIVE</p>
+    <header class="bg-slate-950 text-white py-12 text-center border-b border-emerald-900/50">
+        <h1 class="text-5xl font-black italic text-emerald-400 drop-shadow-lg">🍲 砂鍋盃 LIVE</h1>
+        <p class="text-[10px] text-slate-500 mt-2 tracking-[0.5em] uppercase">ECO POT LIVE</p>
     </header>
 
     <nav class="max-w-md mx-auto px-4 -mt-6 sticky top-4 z-50">
-        <div class="flex bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl p-1.5 border border-white/10">
-            <button onclick="showPage('matches')" id="btn-matches" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all tab-active">賽程看板</button>
-            <button onclick="showPage('standing')" id="btn-standing" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-400">分組積分</button>
-            <button onclick="showPage('bracket')" id="btn-bracket" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-400">晉級之路</button>
+        <div class="flex bg-slate-900/95 backdrop-blur-xl rounded-2xl p-1.5 border border-white/10 shadow-2xl">
+            <button onclick="showPage('matches')" id="btn-matches" class="flex-1 py-3 text-xs font-black rounded-xl tab-active transition-all">賽程看板</button>
+            <button onclick="showPage('standing')" id="btn-standing" class="flex-1 py-3 text-xs font-black rounded-xl text-slate-400 transition-all">分組積分</button>
+            <button onclick="showPage('bracket')" id="btn-bracket" class="flex-1 py-3 text-xs font-black rounded-xl text-slate-400 transition-all">晉級之路</button>
         </div>
     </nav>
 
     <main class="max-w-5xl mx-auto p-4 mt-8">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-2xl tracking-widest">📡 數據同步中...</div>
-        
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse">📡 數據同步中...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
-        
         <section id="page-standing" class="hidden grid gap-8 md:grid-cols-2"></section>
-        
-        <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar rounded-[3rem] p-8 bg-slate-950/50 border border-white/5 shadow-inner">
-            <div id="bracket-flow" class="min-w-[1000px] py-10 space-y-32"></div>
+        <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar rounded-[3rem] p-8 bg-slate-950/50 border border-white/5">
+            <div id="bracket-flow" class="min-w-[1050px] py-10 space-y-32"></div>
         </section>
     </main>
 
@@ -90,23 +67,19 @@
                     id: String(r.c[0]?.v || "").toUpperCase().trim(),
                     time: r.c[1]?.v || "", court: r.c[2]?.v || "",
                     type: String(r.c[3]?.v || ""),
-                    teamA: String(r.c[4]?.v || "TBD").trim(), 
-                    teamB: String(r.c[5]?.v || "TBD").trim(),
+                    teamA: String(r.c[4]?.v || "TBD").trim(), teamB: String(r.c[5]?.v || "TBD").trim(),
                     scoreA: Number(r.c[6]?.v || 0), scoreB: Number(r.c[7]?.v || 0),
                     ref: r.c[8]?.v || "", status: String(r.c[9]?.v || "待賽").trim()
                 }));
                 document.getElementById('loading-msg').classList.add('hidden');
                 renderAll();
-            } catch(e) { console.error("數據讀取失敗", e); }
+            } catch(e) { console.error(e); }
         }
 
-        // 輔助函式：判斷是否為「手動填寫的人名」
         function getEffectiveName(matchData, field, autoName) {
             const raw = matchData[field];
             if (!raw || raw === "TBD") return autoName;
-            // 如果名稱包含以下字眼，視為「自動佔位符」，否則視為「手動更動」
-            const isAuto = /組|第一|第二|勝|敗|待定|SF/.test(raw);
-            return isAuto ? autoName : raw;
+            return /組|第一|第二|勝|敗|待定|SF/.test(raw) ? autoName : raw;
         }
 
         function renderAll() {
@@ -126,17 +99,17 @@
                 const extraClass = (isElite && isLive) ? 'stewing-effect' : (isLive ? 'ring-2 ring-emerald-500' : '');
                 return `<div class="${cardStyle} ${extraClass} p-6 rounded-3xl border transition-all">
                     <div class="flex justify-between items-center text-[10px] font-black mb-4 pb-2 border-b border-white/10 text-emerald-400 uppercase">
-                        <span>${isElite?'🔥 ELITE MATCH':'MATCH'} | ${m.id}</span>
-                        <span class="text-slate-400">${m.time} | 📍 ${m.court}</span>
+                        <span>${isElite?'🔥 ELITE':'ROUND'} | ${m.id}</span>
+                        <span class="text-slate-400">${m.time} | ${m.court}</span>
                     </div>
                     <div class="flex items-center justify-between py-2">
                         <div class="flex-1 text-center font-black text-xl text-white">${m.teamA}</div>
-                        <div class="text-4xl font-black italic text-white tabular-nums">${m.scoreA}:${m.scoreB}</div>
+                        <div class="text-4xl font-black italic text-white">${m.scoreA}:${m.scoreB}</div>
                         <div class="flex-1 text-center font-black text-xl text-white">${m.teamB}</div>
                     </div>
                     <div class="mt-4 flex justify-between items-center text-[10px] font-bold">
-                        <div class="text-slate-500">REF: ${m.ref}</div>
-                        <div class="${isLive ? 'text-orange-500 animate-pulse' : 'text-slate-400'} uppercase">${m.status}</div>
+                        <div class="text-slate-500 italic">裁判: ${m.ref}</div>
+                        <div class="${isLive ? 'text-orange-500 animate-pulse' : 'text-slate-400'}">${m.status}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -166,12 +139,16 @@
                 const sorted = Object.values(stats).sort((a, b) => (b.win !== a.win) ? (b.win - a.win) : (b.score - a.score));
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
                 if (sorted.length === 0) return "";
-                return `<div class="bg-slate-900 rounded-3xl p-5 border border-white/5">
-                    <div class="flex justify-between items-center mb-4"><span class="text-emerald-400 font-black italic">🏆 ${cfg.title}</span><span class="text-[9px] text-slate-500 uppercase">Top ${cfg.top} Qualify</span></div>
+                return `<div class="bg-slate-900 rounded-3xl p-5 border border-white/5 shadow-xl">
+                    <div class="flex justify-between items-center mb-4"><span class="text-emerald-400 font-black italic">🏆 ${cfg.title}</span><span class="text-[9px] text-slate-500">晉級名額: ${cfg.top}</span></div>
                     <table class="w-full text-sm">
-                        ${sorted.map((d, i) => `<tr class="border-b border-white/5 last:border-0">
-                            <td class="py-3 font-bold ${i<cfg.top?'text-white':'text-slate-600'}">${i+1}. ${d.name}</td>
-                            <td class="py-3 text-right font-black text-emerald-500">${d.win} W</td>
+                        <tr class="text-[10px] text-slate-500 border-b border-white/5 uppercase font-bold">
+                            <td class="py-2">隊伍名稱</td><td class="py-2 text-right">勝點 (W)</td><td class="py-2 text-right pr-2">總得分</td>
+                        </tr>
+                        ${sorted.map((d, i) => `<tr class="border-b border-white/5 last:border-0 ${i<cfg.top?'bg-emerald-500/5':''}">
+                            <td class="py-4 font-bold ${i<cfg.top?'text-white':'text-slate-600'}">${i+1}. ${d.name}</td>
+                            <td class="py-4 text-right font-black text-emerald-400 text-lg">${d.win}</td>
+                            <td class="py-4 text-right text-slate-400 italic font-mono pr-2">${d.score}</td>
                         </tr>`).join('')}
                     </table>
                 </div>`;
@@ -184,22 +161,14 @@
                 if (type === "final") { resA = m.scoreA > m.scoreB ? "🥇 冠軍" : "🥈 亞軍"; resB = m.scoreB > m.scoreA ? "🥇 冠軍" : "🥈 亞軍"; }
                 else if (type === "orange") { resA = m.scoreA > m.scoreB ? "🥉 季軍" : "殿軍"; resB = m.scoreB > m.scoreA ? "🥉 季軍" : "殿軍"; }
             }
-            // 晉級圖節點內也支援手動覆蓋顯示
             const finalA = getEffectiveName(m, 'teamA', curA);
             const finalB = getEffectiveName(m, 'teamB', curB);
-            
-            let bClr = type === "final" ? (isLive ? "final-neon" : "border-amber-500") : (type === "orange" ? "border-orange-500" : "border-emerald-500");
-            return `<div class="bracket-node rounded-3xl p-6 border-2 ${bClr}">
+            let bClr = type === "final" ? (isLive ? "final-neon" : "border-amber-500 shadow-amber-500/20 shadow-lg") : (type === "orange" ? "border-orange-500" : "border-emerald-500");
+            return `<div class="bracket-node rounded-3xl p-6 border-2 ${bClr} transition-all">
                 <div class="text-[9px] font-black mb-4 flex justify-between text-slate-400 uppercase tracking-widest"><span>${label}</span><span>${m.status}</span></div>
                 <div class="space-y-4 text-xl font-black text-white">
-                    <div class="flex justify-between items-center">
-                        <span class="truncate w-40">${finalA}</span>
-                        <span class="text-emerald-400 tabular-nums">${m.scoreA}<span class="text-[9px] block text-amber-500">${resA}</span></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="truncate w-40">${finalB}</span>
-                        <span class="text-emerald-400 tabular-nums">${m.scoreB}<span class="text-[9px] block text-amber-500">${resB}</span></span>
-                    </div>
+                    <div class="flex justify-between items-center"><span class="truncate w-36">${finalA}</span><span class="text-emerald-400">${m.scoreA}<span class="text-[9px] block text-amber-500">${resA}</span></span></div>
+                    <div class="flex justify-between items-center"><span class="truncate w-36">${finalB}</span><span class="text-emerald-400">${m.scoreB}<span class="text-[9px] block text-amber-500">${resB}</span></span></div>
                 </div>
             </div>`;
         }
@@ -208,41 +177,47 @@
             const flow = document.getElementById('bracket-flow'); flow.innerHTML = "";
             ["女雙", "混雙"].forEach((cat) => {
                 const isG = cat === "女雙";
-                // 1. 抓取預賽自動計算名單
-                let autoS1A = isG ? (groupWinners["女雙A"]?.[0] || 'A組第一') : (groupWinners["混雙A"]?.[0] || 'A組第一');
-                let autoS1B = isG ? (groupWinners["女雙B"]?.[1] || 'B組第二') : (groupWinners["混雙C"]?.[0] || 'C組第一');
-                let autoS2A = isG ? (groupWinners["女雙B"]?.[0] || 'B組第一') : (groupWinners["混雙B"]?.[0] || 'B組第一');
-                let autoS2B = isG ? (groupWinners["女雙A"]?.[1] || 'A組第二') : (groupWinners["混雙A"]?.[1] || 'A組第二');
+                let s1A, s1B, s2A, s2B;
+
+                if (isG) {
+                    s1A = groupWinners["女雙A"]?.[0] || 'A組第一';
+                    s1B = groupWinners["女雙B"]?.[1] || 'B組第二';
+                    s2A = groupWinners["女雙B"]?.[0] || 'B組第一';
+                    s2B = groupWinners["女雙A"]?.[1] || 'A組第二';
+                } else {
+                    // 混雙邏輯修正：A1 vs C1, B1 vs A2
+                    s1A = groupWinners["混雙A"]?.[0] || 'A組第一';
+                    s1B = groupWinners["混雙C"]?.[0] || 'C組第一';
+                    s2A = groupWinners["混雙B"]?.[0] || 'B組第一';
+                    s2B = groupWinners["混雙A"]?.[1] || 'A組第二';
+                }
 
                 const s1 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("1")) || {scoreA:0, scoreB:0, status:"待賽"};
                 const s2 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("2")) || {scoreA:0, scoreB:0, status:"待賽"};
                 const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/i) && !m.type.includes("季殿")) || {scoreA:0, scoreB:0, status:"待賽"};
                 const t = allData.find(m => m.type.includes(cat) && m.type.match(/季殿/)) || {scoreA:0, scoreB:0, status:"待賽"};
 
-                // 2. 計算四強實際的名字（考慮手動更動）
-                let realS1A = getEffectiveName(s1, 'teamA', autoS1A);
-                let realS1B = getEffectiveName(s1, 'teamB', autoS1B);
-                let realS2A = getEffectiveName(s2, 'teamA', autoS2A);
-                let realS2B = getEffectiveName(s2, 'teamB', autoS2B);
+                let realS1A = getEffectiveName(s1, 'teamA', s1A);
+                let realS1B = getEffectiveName(s1, 'teamB', s1B);
+                let realS2A = getEffectiveName(s2, 'teamA', s2A);
+                let realS2B = getEffectiveName(s2, 'teamB', s2B);
 
-                // 3. 計算決賽/季殿賽應該顯示的名字 (根據四強結果自動判斷)
                 let fA_auto = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? realS1A : realS1B) : realS1A;
                 let tA_auto = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? realS1B : realS1A) : realS1B;
-                
                 let fB_auto = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? realS2A : realS2B) : realS2A;
                 let tB_auto = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? realS2B : realS2A) : realS2B;
 
-                flow.innerHTML += `<div class="p-10 rounded-[3rem] bg-slate-900/40 border border-white/5 mb-20 shadow-2xl">
+                flow.innerHTML += `<div class="p-10 rounded-[3rem] bg-slate-900/40 border border-white/5 shadow-2xl mb-24">
                     <h3 class="text-center font-black text-white text-3xl mb-20 italic uppercase tracking-widest">${cat} Finals Road</h3>
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="w-1/4">${buildNode(s1, "Semi-Final 1", "emerald", autoS1A, autoS1B)}</div>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="w-1/4">${buildNode(s1, "Semi-Final 1", "emerald", s1A, s1B)}</div>
                         <div class="bracket-line-flow"></div>
                         <div class="w-1/3 flex flex-col gap-24">
                             ${buildNode(f, "🏆 Grand Final", "final", fA_auto, fB_auto)}
                             ${buildNode(t, "🏅 3rd Place Match", "orange", tA_auto, tB_auto)}
                         </div>
                         <div class="bracket-line-flow" style="transform: scaleX(-1);"></div>
-                        <div class="w-1/4">${buildNode(s2, "Semi-Final 2", "emerald", autoS2A, autoS2B)}</div>
+                        <div class="w-1/4">${buildNode(s2, "Semi-Final 2", "emerald", s2A, s2B)}</div>
                     </div>
                 </div>`;
             });
@@ -255,14 +230,9 @@
             });
             document.getElementById(`page-${p}`).classList.remove('hidden');
             document.getElementById(`btn-${p}`).classList.add('tab-active');
-            if(p === 'bracket') {
-                const c = document.getElementById('page-bracket');
-                setTimeout(() => c.scrollLeft = (c.scrollWidth - c.clientWidth) / 2, 100);
-            }
+            if(p === 'bracket') { const c = document.getElementById('page-bracket'); setTimeout(() => c.scrollLeft = (c.scrollWidth - c.clientWidth) / 2, 100); }
         }
-
-        loadData();
-        setInterval(loadData, 15000);
+        loadData(); setInterval(loadData, 15000);
     </script>
 </body>
 </html>
