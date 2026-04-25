@@ -3,50 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 專業競賽系統</title>
+    <title>生態砂鍋盃 - 競賽看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
-        .tab-active { background-color: #059669 !important; color: white !important; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 流程圖專用樣式 */
+        .bracket-connector {
+            position: relative;
+        }
+        .bracket-connector::after {
+            content: "";
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            width: 20px;
+            border-top: 2px solid #cbd5e1;
+        }
+        .match-card {
+            min-width: 160px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        .match-card.active { border-color: #10b981; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1); }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-10">
 
-    <header class="bg-slate-900 text-white pt-8 pb-12 text-center shadow-xl">
-        <h1 class="text-3xl font-black tracking-widest text-emerald-400">🍲 生態砂鍋盃</h1>
-        <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-[0.2em]">Tournament Live Dashboard</p>
+    <header class="bg-slate-900 text-white py-10 text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <h1 class="text-4xl font-black tracking-tighter text-emerald-400 italic">鍋盃 LIVE</h1>
+        <p class="text-xs text-slate-400 mt-2 font-bold tracking-[0.3em]">ECO-POT BADMINTON CUP</p>
     </header>
 
-    <nav class="max-w-md mx-auto px-4 -mt-6 sticky top-4 z-50">
-        <div class="flex bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-1.5 border border-white/20">
-            <button onclick="showPage('matches')" id="btn-matches" class="nav-btn flex-1 py-2.5 text-xs font-black rounded-xl transition-all tab-active">賽程看板</button>
-            <button onclick="showPage('standing')" id="btn-standing" class="nav-btn flex-1 py-2.5 text-xs font-black rounded-xl transition-all text-slate-500">分組積分</button>
-            <button onclick="showPage('bracket')" id="btn-bracket" class="nav-btn flex-1 py-2.5 text-xs font-black rounded-xl transition-all text-slate-500">晉級圖</button>
+    <nav class="max-w-md mx-auto px-4 -mt-8 sticky top-4 z-50">
+        <div class="flex bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-1.5 border border-white">
+            <button onclick="showPage('matches')" id="btn-matches" class="flex-1 py-3 text-xs font-black rounded-2xl transition-all bg-emerald-600 text-white">賽程</button>
+            <button onclick="showPage('standing')" id="btn-standing" class="flex-1 py-3 text-xs font-black rounded-2xl transition-all text-slate-500">積分</button>
+            <button onclick="showPage('bracket')" id="btn-bracket" class="flex-1 py-3 text-xs font-black rounded-2xl transition-all text-slate-500">晉級圖</button>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 mt-4">
+    <main class="max-w-4xl mx-auto p-4">
         
-        <div id="filter-bar" class="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-            <button onclick="setFilter('全部')" class="filter-btn shrink-0 px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">全部</button>
-            <button onclick="setFilter('男雙')" class="filter-btn shrink-0 px-4 py-1.5 bg-white text-slate-600 rounded-full text-xs font-bold border border-slate-200">男雙</button>
-            <button onclick="setFilter('女雙')" class="filter-btn shrink-0 px-4 py-1.5 bg-white text-slate-600 rounded-full text-xs font-bold border border-slate-200">女雙</button>
-            <button onclick="setFilter('混雙')" class="filter-btn shrink-0 px-4 py-1.5 bg-white text-slate-600 rounded-full text-xs font-bold border border-slate-200">混雙</button>
-        </div>
-
-        <section id="page-matches" class="space-y-4">
-            <div id="match-list" class="grid gap-4">
-                <div class="text-center py-10 text-slate-400">正在從雲端同步賽程...</div>
-            </div>
+        <section id="page-matches" class="mt-6 space-y-4">
+            <div id="match-list" class="grid gap-3"></div>
         </section>
 
-        <section id="page-standing" class="hidden space-y-6">
+        <section id="page-standing" class="hidden mt-6 space-y-6">
             <div id="standing-container"></div>
         </section>
 
-        <section id="page-bracket" class="hidden">
-            <div id="bracket-list" class="grid gap-6"></div>
+        <section id="page-bracket" class="hidden mt-6 overflow-x-auto no-scrollbar">
+            <div id="bracket-flow" class="min-w-[800px] py-10 space-y-20">
+                </div>
         </section>
 
     </main>
@@ -54,9 +66,7 @@
     <script>
         const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-        
         let allData = [];
-        let filter = '全部';
 
         async function loadData() {
             try {
@@ -70,100 +80,120 @@
                 }));
                 renderMatches();
                 renderStandings();
-                renderBrackets();
-            } catch(e) { console.error("同步失敗"); }
+                renderBracketFlow();
+            } catch(e) { console.error(e); }
         }
 
+        // 簡化賽程顯示
         function renderMatches() {
-            const container = document.getElementById('match-list');
-            const data = filter === '全部' ? allData : allData.filter(m => m.type.includes(filter));
-            container.innerHTML = data.map(m => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2 uppercase">
-                        <span>${m.time} | ${m.court}</span>
-                        <span class="text-emerald-600">${m.type}</span>
+            const list = document.getElementById('match-list');
+            list.innerHTML = allData.map(m => `
+                <div class="bg-white px-5 py-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                    <div class="w-1/4">
+                        <p class="text-[10px] font-black text-emerald-500">${m.type}</p>
+                        <p class="text-[10px] text-slate-400 font-bold">${m.time}</p>
                     </div>
-                    <div class="flex items-center">
-                        <div class="flex-1 text-center text-sm font-bold px-2">${m.teamA}</div>
-                        <div class="px-4 text-2xl font-black text-slate-800">${m.scoreA}:${m.scoreB}</div>
-                        <div class="flex-1 text-center text-sm font-bold px-2">${m.teamB}</div>
-                    </div>
-                    <div class="mt-2 pt-2 border-t border-slate-50 flex justify-between text-[10px] text-slate-300">
-                        <span>裁判: ${m.ref}</span>
-                        <span class="${m.status==='進行中'?'text-orange-500 animate-pulse font-black':''}">${m.status}</span>
+                    <div class="flex-1 flex items-center justify-center gap-3">
+                        <span class="text-xs font-black text-slate-700">${m.teamA}</span>
+                        <span class="text-lg font-black text-red-500">${m.scoreA}:${m.scoreB}</span>
+                        <span class="text-xs font-black text-slate-700">${m.teamB}</span>
                     </div>
                 </div>
             `).join('');
         }
 
+        // 分組積分
         function renderStandings() {
             const groups = ["男雙", "女雙", "混雙"];
-            const container = document.getElementById('standing-container');
-            container.innerHTML = groups.map(g => {
+            document.getElementById('standing-container').innerHTML = groups.map(g => {
                 const stats = {};
-                // 只計算預賽，排除四強、決賽
-                const groupMatches = allData.filter(m => m.type.includes(g) && !m.type.includes("四強") && !m.type.includes("決賽") && !m.type.includes("季殿"));
-                
-                groupMatches.forEach(m => {
+                allData.filter(m => m.type.includes(g) && !m.type.match(/四強|決賽|季殿/)).forEach(m => {
                     [m.teamA, m.teamB].forEach(t => { if(t && t!=='TBD' && !stats[t]) stats[t] = 0; });
                     if(m.status === "已結束") {
-                        if(m.scoreA > m.scoreB) stats[m.teamA]++;
-                        else if(m.scoreB > m.scoreA) stats[m.teamB]++;
+                        if(m.scoreA > m.scoreB) stats[m.teamA]++; else if(m.scoreB > m.scoreA) stats[m.teamB]++;
                     }
                 });
-                
                 const sorted = Object.entries(stats).sort((a,b) => b[1]-a[1]);
                 return `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-                        <div class="bg-slate-50 px-4 py-2 text-xs font-black text-slate-500 border-b italic">${g} 排名預覽</div>
-                        <table class="w-full text-left text-sm">
+                    <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+                        <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>${g} 積分預覽
+                        </h3>
+                        <div class="space-y-3">
                             ${sorted.map(([name, win], i) => `
-                                <tr class="border-b border-slate-50">
-                                    <td class="p-3 font-bold text-slate-600">${i+1}. ${name}</td>
-                                    <td class="p-3 text-right font-black text-emerald-600">${win} 勝</td>
-                                </tr>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="font-bold text-slate-500">${i+1}. ${name}</span>
+                                    <span class="font-black text-emerald-600">${win} 勝</span>
+                                </div>
                             `).join('')}
-                        </table>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function renderBrackets() {
-            const container = document.getElementById('bracket-list');
-            const bracketData = allData.filter(m => m.type.includes("四強") || m.type.includes("決賽") || m.type.includes("季殿"));
+        // 流程圖核心邏輯
+        function renderBracketFlow() {
+            const flow = document.getElementById('bracket-flow');
+            const categories = ["女雙", "混雙"];
             
-            container.innerHTML = bracketData.map(m => `
-                <div class="bg-slate-800 p-4 rounded-2xl shadow-xl text-white">
-                    <div class="text-[10px] font-black text-emerald-400 mb-3 text-center tracking-widest uppercase">${m.type}</div>
-                    <div class="grid grid-cols-3 items-center">
-                        <div class="text-center text-xs font-bold leading-tight">${m.teamA}</div>
-                        <div class="text-center">
-                            <div class="text-xl font-black text-white">${m.scoreA} : ${m.scoreB}</div>
-                            <div class="text-[9px] text-slate-500 font-bold mt-1">${m.status}</div>
+            flow.innerHTML = categories.map(cat => {
+                const semi1 = allData.find(m => m.type === `${cat}(四強)` && m.id.includes("1")) || {teamA:'?', teamB:'?', scoreA:0, scoreB:0};
+                const semi2 = allData.find(m => m.type === `${cat}(四強)` && m.id.includes("2")) || {teamA:'?', teamB:'?', scoreA:0, scoreB:0};
+                const final = allData.find(m => m.type === `${cat}(決賽)`) || {teamA:'勝者', teamB:'勝者', scoreA:0, scoreB:0};
+                
+                return `
+                <div class="space-y-4">
+                    <h2 class="text-center font-black text-slate-300 tracking-widest italic underline decoration-emerald-500 decoration-4 underline-offset-8 mb-10">${cat} 晉級流程</h2>
+                    <div class="flex items-center justify-around">
+                        <div class="space-y-12">
+                            ${buildNode(semi1)}
+                            ${buildNode(semi2)}
                         </div>
-                        <div class="text-center text-xs font-bold leading-tight">${m.teamB}</div>
+                        <div class="text-slate-300 font-black text-2xl animate-pulse">➔</div>
+                        <div class="space-y-0">
+                            <p class="text-center text-[10px] font-black text-amber-500 mb-2">GOLD MEDAL MATCH</p>
+                            ${buildNode(final, true)}
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+        }
+
+        function buildNode(m, isGold = false) {
+            return `
+                <div class="match-card bg-white rounded-xl overflow-hidden shadow-lg ${m.status==='進行中'?'active animate-bounce':''}">
+                    <div class="bg-slate-50 px-3 py-1 text-[8px] font-black text-slate-400 border-b flex justify-between">
+                        <span>${m.time || ''}</span>
+                        <span>${isGold ? '🏆 FINAL' : 'SEMI'}</span>
+                    </div>
+                    <div class="p-3 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-600 truncate w-24">${m.teamA}</span>
+                            <span class="font-black text-sm text-slate-900">${m.scoreA}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-600 truncate w-24">${m.teamB}</span>
+                            <span class="font-black text-sm text-slate-900">${m.scoreB}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function showPage(p) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.getElementById(`page-${p}`).classList.remove('hidden');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('tab-active', 'text-slate-500'));
-            document.getElementById(`btn-${p}`).classList.add('tab-active');
-            // 切換時是否顯示過濾器
-            document.getElementById('filter-bar').classList.toggle('hidden', p !== 'matches');
-        }
-
-        function setFilter(f) {
-            filter = f;
-            renderMatches();
+            document.querySelectorAll('nav button').forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white');
+                b.classList.add('text-slate-500');
+            });
+            document.getElementById(`btn-${p}`).classList.add('bg-emerald-600', 'text-white');
         }
 
         loadData();
-        setInterval(loadData, 30000); // 30秒更新
+        setInterval(loadData, 20000);
     </script>
 </body>
 </html>
