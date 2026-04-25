@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 官方即時看板 (完全體)</title>
+    <title>生態砂鍋盃 - 官方即時看板 (混雙邏輯修正版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
@@ -11,7 +11,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .tab-active { background-color: #10b981 !important; color: white !important; transform: scale(1.1); box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
         
-        /* 狂暴火鍋特效 */
         @keyframes hyper-stewing {
             0% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
             20% { transform: translate(2px, 1px); box-shadow: 0 0 40px #ef4444; }
@@ -19,8 +18,6 @@
             100% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
         }
         .stewing-effect { animation: hyper-stewing 0.3s infinite linear; border: 4px solid #fbbf24 !important; }
-
-        /* 晉級圖能量流 */
         .bracket-line-flow { height: 4px; background: linear-gradient(90deg, transparent, #fbbf24, transparent); background-size: 200% 100%; animation: lineFlow 1.2s linear infinite; flex-grow: 1; }
         @keyframes lineFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .bracket-node { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -185,11 +182,11 @@
                     s2A = groupWinners["女雙B"]?.[0] || 'B組第一';
                     s2B = groupWinners["女雙A"]?.[1] || 'A組第二';
                 } else {
-                    // 混雙邏輯修正：A1 vs C1, B1 vs A2
+                    // === 混雙專屬邏輯：依據你的提供修正 ===
                     s1A = groupWinners["混雙A"]?.[0] || 'A組第一';
-                    s1B = groupWinners["混雙C"]?.[0] || 'C組第一';
-                    s2A = groupWinners["混雙B"]?.[0] || 'B組第一';
-                    s2B = groupWinners["混雙A"]?.[1] || 'A組第二';
+                    s1B = groupWinners["混雙B"]?.[0] || 'B組第一'; // 四強(一) A1 vs B1
+                    s2A = groupWinners["混雙A"]?.[1] || 'A組第二'; // 四強(二) A2 vs C1
+                    s2B = groupWinners["混雙C"]?.[0] || 'C組第一';
                 }
 
                 const s1 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("1")) || {scoreA:0, scoreB:0, status:"待賽"};
