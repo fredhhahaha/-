@@ -3,169 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 即時比分看板</title>
+    <title>生態砂鍋盃 - 專業競賽系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .bracket-node { position: relative; padding: 10px; border: 1px solid #e2e8f0; background: white; border-radius: 8px; width: 150px; }
+        .bracket-line { position: absolute; border-color: #cbd5e1; border-style: solid; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-900 pb-10">
+<body>
 
-    <header class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 text-center shadow-lg mb-6">
-        <h1 class="text-3xl font-black tracking-widest">🍲 生態砂鍋盃</h1>
-        <div class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs animate-pulse">
-            ● 雲端即時更新中
-        </div>
+    <header class="bg-slate-900 text-white p-6 text-center shadow-2xl">
+        <h1 class="text-3xl font-black tracking-widest text-emerald-400">🍲 生態砂鍋盃</h1>
+        <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">Tournament Management System</p>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4">
-        
-        <div class="flex bg-white rounded-xl p-1 shadow-md mb-8 sticky top-4 z-10 border border-emerald-100">
-            <button onclick="showSection('matches')" id="btn-matches" class="flex-1 py-3 text-sm font-bold rounded-lg transition-all bg-emerald-600 text-white">
-                🏃 賽程看板
-            </button>
-            <button onclick="showSection('standing')" id="btn-standing" class="flex-1 py-3 text-sm font-bold rounded-lg transition-all text-emerald-600">
-                🏆 積分排名
-            </button>
+    <nav class="max-w-4xl mx-auto px-4 -mt-6">
+        <div class="flex bg-white rounded-2xl shadow-xl p-1 border border-slate-200">
+            <button onclick="showPage('matches')" class="nav-btn flex-1 py-3 text-sm font-bold rounded-xl bg-emerald-600 text-white" id="btn-matches">賽程</button>
+            <button onclick="showPage('standing')" class="nav-btn flex-1 py-3 text-sm font-bold rounded-xl text-slate-600" id="btn-standing">積分</button>
+            <button onclick="showPage('bracket')" class="nav-btn flex-1 py-3 text-sm font-bold rounded-xl text-slate-600" id="btn-bracket">晉級圖</button>
         </div>
+    </nav>
 
-        <div id="loading-spinner" class="flex flex-col items-center justify-center py-20">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-            <p class="mt-4 text-gray-500 font-medium">同步 Google 試算表資料...</p>
-        </div>
-
-        <div id="section-matches" class="space-y-6 hidden">
-            <div id="match-container" class="grid gap-4">
-                </div>
-        </div>
-
-        <div id="section-standing" class="hidden">
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100">
-                <table class="min-w-full text-left">
-                    <thead class="bg-emerald-50 text-emerald-700 border-b border-emerald-100">
-                        <tr>
-                            <th class="px-6 py-4 font-black">隊伍名稱</th>
-                            <th class="px-6 py-4 text-center font-black">勝場 (得點)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="standing-table" class="divide-y divide-gray-100">
-                        </tbody>
-                </table>
+    <main class="max-w-5xl mx-auto p-4 mt-6">
+        <section id="page-matches" class="space-y-4">
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="filterType('全部')" class="px-4 py-1 bg-white border rounded-full text-xs font-bold shadow-sm">全部</button>
+                <button onclick="filterType('男雙')" class="px-4 py-1 bg-white border rounded-full text-xs font-bold shadow-sm">男雙</button>
+                <button onclick="filterType('女雙')" class="px-4 py-1 bg-white border rounded-full text-xs font-bold shadow-sm">女雙</button>
+                <button onclick="filterType('混雙')" class="px-4 py-1 bg-white border rounded-full text-xs font-bold shadow-sm">混雙</button>
             </div>
-            <p class="mt-4 text-center text-gray-400 text-xs italic">※ 積分僅統計狀態為「已結束」之場次</p>
-        </div>
+            <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section id="page-standing" class="hidden space-y-8">
+            <div id="standing-groups"></div>
+        </section>
+
+        <section id="page-bracket" class="hidden overflow-x-auto">
+            <div class="min-w-[600px] p-8 bg-white rounded-3xl shadow-inner border border-slate-100">
+                <h2 class="text-center font-black text-slate-400 mb-10 tracking-widest uppercase">淘汰賽階段 (女雙/混雙)</h2>
+                <div id="bracket-container" class="space-y-12">
+                    </div>
+            </div>
+        </section>
     </main>
 
     <script>
-        // 設定你的 Google 試算表 ID
         const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+        let allMatches = [];
+        let currentFilter = '全部';
 
-        let matchData = [];
-
-        async function fetchData() {
+        async function init() {
             try {
-                const response = await fetch(sheetUrl);
-                const text = await response.text();
-                // 處理 Google Sheets 的 JSON 封裝格式
-                const json = JSON.parse(text.substr(47).slice(0, -2));
-                
-                matchData = json.table.rows.map(row => ({
-                    id: row.c[0]?.v || '',
-                    time: row.c[1]?.v || '',
-                    court: row.c[2]?.v || '',
-                    type: row.c[3]?.v || '',
-                    teamA: row.c[4]?.v || 'TBD',
-                    teamB: row.c[5]?.v || 'TBD',
-                    scoreA: row.c[6]?.v || 0,
-                    scoreB: row.c[7]?.v || 0,
-                    ref: row.c[8]?.v || '',
-                    status: row.c[9]?.v || '待賽'
+                const res = await fetch(sheetUrl);
+                const text = await res.text();
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                allMatches = json.table.rows.map(r => ({
+                    id: r.c[0]?.v || '', time: r.c[1]?.v || '', court: r.c[2]?.v || '',
+                    type: r.c[3]?.v || '', teamA: r.c[4]?.v || 'TBD', teamB: r.c[5]?.v || 'TBD',
+                    scoreA: r.c[6]?.v || 0, scoreB: r.c[7]?.v || 0, ref: r.c[8]?.v || '', status: r.c[9]?.v || '待賽'
                 }));
+                renderAll();
+            } catch (e) { alert("連線失敗！"); }
+        }
 
-                document.getElementById('loading-spinner').classList.add('hidden');
-                document.getElementById('section-matches').classList.remove('hidden');
-                renderMatches();
-                renderStandings();
-            } catch (error) {
-                console.error("抓取失敗:", error);
-                document.getElementById('loading-spinner').innerHTML = `<p class="text-red-500">❌ 資料連線失敗，請檢查試算表是否已發佈至網路。</p>`;
-            }
+        function renderAll() {
+            renderMatches();
+            renderStandings();
+            renderBrackets();
         }
 
         function renderMatches() {
-            const container = document.getElementById('match-container');
-            container.innerHTML = matchData.map(m => {
-                const isFinished = m.status === "已結束";
-                const isPlaying = m.status === "進行中";
-                
-                return `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden ${isFinished ? 'opacity-60' : 'ring-1 ring-emerald-500/20 shadow-emerald-100'}">
-                    <div class="bg-gray-50 px-4 py-2 flex justify-between items-center border-b border-gray-100">
-                        <span class="text-[10px] font-bold text-gray-400 tracking-tighter uppercase">📍 ${m.court} | 🕒 ${m.time}</span>
-                        <span class="text-[10px] font-black px-2 py-0.5 rounded ${isPlaying ? 'bg-orange-500 text-white' : 'bg-emerald-100 text-emerald-700'}">${m.type}</span>
+            const list = document.getElementById('match-list');
+            const filtered = currentFilter === '全部' ? allMatches : allMatches.filter(m => m.type.includes(currentFilter));
+            list.innerHTML = filtered.map(m => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-400 mb-2">
+                        <span>${m.time} | ${m.court}</span>
+                        <span class="text-emerald-500">${m.type}</span>
                     </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-3 items-center gap-2">
-                            <div class="text-sm font-bold text-center leading-tight text-gray-700">${m.teamA}</div>
-                            <div class="flex flex-col items-center">
-                                <div class="text-2xl font-black ${isFinished ? 'text-gray-400' : 'text-red-600'}">${m.scoreA} : ${m.scoreB}</div>
-                                <div class="text-[10px] font-bold ${isPlaying ? 'text-orange-500 underline' : 'text-gray-300'}">${m.status}</div>
-                            </div>
-                            <div class="text-sm font-bold text-center leading-tight text-gray-700">${m.teamB}</div>
-                        </div>
-                        <div class="mt-3 text-center">
-                            <p class="text-[10px] text-gray-400 font-medium">場次編號：${m.id} | 裁判：${m.ref}</p>
-                        </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 text-center font-bold text-sm">${m.teamA}</div>
+                        <div class="px-4 text-xl font-black text-slate-800">${m.scoreA}:${m.scoreB}</div>
+                        <div class="flex-1 text-center font-bold text-sm">${m.teamB}</div>
                     </div>
+                    <div class="mt-2 text-center text-[10px] text-slate-300">狀態：${m.status} | 裁判：${m.ref}</div>
                 </div>
+            `).join('');
+        }
+
+        function renderStandings() {
+            const groups = ["男雙", "女雙", "混雙"];
+            const container = document.getElementById('standing-groups');
+            container.innerHTML = groups.map(group => {
+                const stats = {};
+                allMatches.filter(m => m.type.includes(group) && !m.type.includes("四強") && !m.type.includes("決賽")).forEach(m => {
+                    [m.teamA, m.teamB].forEach(t => { if(t && t!=='TBD' && !stats[t]) stats[t] = 0; });
+                    if(m.status === "已結束") {
+                        if(m.scoreA > m.scoreB) stats[m.teamA]++;
+                        else if(m.scoreB > m.scoreA) stats[m.teamB]++;
+                    }
+                });
+                const sorted = Object.entries(stats).sort((a,b) => b[1]-a[1]);
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6 border border-slate-100">
+                        <div class="bg-slate-50 px-6 py-3 border-b font-black text-slate-700">🏆 ${group} 積分榜</div>
+                        <table class="w-full text-left text-sm">
+                            <tbody class="divide-y">
+                                ${sorted.map(([name, score], i) => `<tr><td class="px-6 py-3 font-bold">${i+1}. ${name}</td><td class="px-6 py-3 text-right font-black text-emerald-600">${score} 勝</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 `;
             }).join('');
         }
 
-        function renderStandings() {
-            const stats = {};
-            matchData.forEach(m => {
-                if (m.teamA && m.teamA !== 'TBD') if (!stats[m.teamA]) stats[m.teamA] = 0;
-                if (m.teamB && m.teamB !== 'TBD') if (!stats[m.teamB]) stats[m.teamB] = 0;
-                
-                if (m.status === "已結束") {
-                    if (parseInt(m.scoreA) > parseInt(m.scoreB)) stats[m.teamA]++;
-                    else if (parseInt(m.scoreB) > parseInt(m.scoreA)) stats[m.teamB]++;
-                }
-            });
-
-            const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-            const table = document.getElementById('standing-table');
-            table.innerHTML = sorted.map(([name, score], index) => `
-                <tr class="${index < 3 ? 'bg-emerald-50/30' : ''}">
-                    <td class="px-6 py-4 font-bold text-gray-700">${index === 0 ? '👑 ' : ''}${name}</td>
-                    <td class="px-6 py-4 text-center font-black text-emerald-600 text-xl">${score}</td>
-                </tr>
-            `).join('');
-        }
-
-        function showSection(section) {
-            const isMatch = section === 'matches';
-            document.getElementById('section-matches').classList.toggle('hidden', !isMatch);
-            document.getElementById('section-standing').classList.toggle('hidden', isMatch);
+        function renderBrackets() {
+            const container = document.getElementById('bracket-container');
+            // 這裡抓取有「四強」或「決賽」字眼的場次
+            const bracketMatches = allMatches.filter(m => m.type.includes("四強") || m.type.includes("決賽") || m.type.includes("季殿"));
             
-            // 按鈕樣式切換
-            const btnM = document.getElementById('btn-matches');
-            const btnS = document.getElementById('btn-standing');
-            if(isMatch) {
-                btnM.className = "flex-1 py-3 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow-lg shadow-emerald-200";
-                btnS.className = "flex-1 py-3 text-sm font-bold rounded-lg text-emerald-600";
-            } else {
-                btnS.className = "flex-1 py-3 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow-lg shadow-emerald-200";
-                btnM.className = "flex-1 py-3 text-sm font-bold rounded-lg text-emerald-600";
-            }
+            container.innerHTML = `
+                <div class="grid grid-cols-1 gap-8">
+                    ${bracketMatches.map(m => `
+                        <div class="flex flex-col items-center">
+                            <div class="text-[10px] font-bold text-slate-400 mb-1">${m.type} - ${m.time}</div>
+                            <div class="bracket-node shadow-lg border-2 ${m.status==='已結束'?'border-slate-200':'border-emerald-400'}">
+                                <div class="flex justify-between text-xs font-bold mb-1">
+                                    <span>${m.teamA}</span><span class="text-red-500">${m.scoreA}</span>
+                                </div>
+                                <div class="border-t my-1"></div>
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span>${m.teamB}</span><span class="text-red-500">${m.scoreB}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
 
-        // 啟動與每 30 秒自動更新
-        fetchData();
-        setInterval(fetchData, 30000);
+        function showPage(page) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`page-${page}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('bg-emerald-600', 'text-white');
+                b.classList.add('text-slate-600');
+            });
+            document.getElementById(`btn-${page}`).classList.add('bg-emerald-600', 'text-white');
+        }
+
+        function filterType(type) {
+            currentFilter = type;
+            renderMatches();
+        }
+
+        init();
+        setInterval(init, 30000);
     </script>
 </body>
 </html>
