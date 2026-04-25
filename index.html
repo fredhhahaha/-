@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生態砂鍋盃 - 智慧賽程系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+    <header class="bg-indigo-700 text-white p-6 text-center shadow-xl">
+        <h1 class="text-2xl font-bold tracking-wider">🍲 生態砂鍋盃羽球官網</h1>
+        <div class="mt-2 text-xs opacity-75 flex justify-center space-x-4">
+            <span>● 自動計分系統</span>
+            <span>● 即時賽程更新</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 pb-20">
+        
+        <div class="flex bg-white rounded-lg p-1 shadow-sm mb-6">
+            <button onclick="showSection('matches')" class="flex-1 py-2 text-sm font-medium rounded-md hover:bg-indigo-50 focus:bg-indigo-100">今日賽程</button>
+            <button onclick="showSection('standing')" class="flex-1 py-2 text-sm font-medium rounded-md hover:bg-indigo-50 focus:bg-indigo-100">積分榜(自動計算)</button>
+        </div>
+
+        <div id="section-matches" class="space-y-6">
+            <h2 class="text-lg font-bold text-indigo-800 border-b-2 border-indigo-200 pb-2">📅 比賽場次</h2>
+            <div id="match-container" class="space-y-4"></div>
+        </div>
+
+        <div id="section-standing" class="hidden space-y-6">
+            <h2 class="text-lg font-bold text-indigo-800 border-b-2 border-indigo-200 pb-2">🏆 隊伍排名 (得點數)</h2>
+            <div class="overflow-x-auto bg-white rounded-xl shadow">
+                <table class="min-w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 uppercase">
+                        <tr>
+                            <th class="px-4 py-3">隊伍名稱</th>
+                            <th class="px-4 py-3 text-center">勝場(得點)</th>
+                            <th class="px-4 py-3 text-center">狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody id="standing-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // 【資料區】您只需要更新這裡的資料，網站就會自動計算！
+        const matchData = [
+            // 男雙 M 組
+            { id: "M1", time: "18:00", court: "場地 1", type: "男雙", teamA: "兩塊底料", teamB: "爛糊芋頭鍋", ref: "林昱承", scoreA: 21, scoreB: 15, status: "已結束" },
+            { id: "A1", time: "18:00", court: "場地 2", type: "女雙", teamA: "豬大鍋還火着", teamB: "這鍋很有料", ref: "郭文晉", scoreA: 0, scoreB: 0, status: "進行中" },
+            { id: "A3", time: "18:00", court: "場地 3", type: "混雙", teamA: "芋頭拌沙茶", teamB: "茼蒿大陸妹", ref: "邱詮祐", scoreA: 0, scoreB: 0, status: "待賽" },
+            
+            // 淘汰賽範例 (當分組出來後再填寫)
+            { id: "女四強1", time: "21:30", court: "場地 2", type: "女雙", teamA: "A組第一", teamB: "B組第二", ref: "現場選", scoreA: 0, scoreB: 0, status: "決賽圈" }
+        ];
+
+        // 自動計算積分邏輯
+        function calculateStandings() {
+            const stats = {};
+            matchData.forEach(m => {
+                [m.teamA, m.teamB].forEach(t => { if(!stats[t]) stats[t] = 0; });
+                if(m.status === "已結束") {
+                    if(m.scoreA > m.scoreB) stats[m.teamA]++;
+                    else if(m.scoreB > m.scoreA) stats[m.teamB]++;
+                }
+            });
+            return Object.entries(stats).sort((a, b) => b[1] - a[1]);
+        }
+
+        function renderAll() {
+            // 渲染賽程
+            const matchContainer = document.getElementById('match-container');
+            matchContainer.innerHTML = matchData.map(m => `
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 ${m.status==='已結束'?'border-gray-300':'border-indigo-500'}">
+                    <div class="flex justify-between text-xs text-gray-500 mb-2">
+                        <span>📍 ${m.court} | 🕒 ${m.time}</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${m.type}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <div class="flex-1 text-center font-bold">${m.teamA}</div>
+                        <div class="flex-1 text-center">
+                            <span class="text-2xl font-black ${m.status==='已結束'?'text-gray-400':'text-red-600'}">${m.scoreA} : ${m.scoreB}</span>
+                        </div>
+                        <div class="flex-1 text-center font-bold">${m.teamB}</div>
+                    </div>
+                    <div class="mt-2 pt-2 border-t flex justify-between text-xs text-gray-400 italic">
+                        <span>裁判：${m.ref}</span>
+                        <span>狀態：${m.status}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // 渲染積分榜
+            const standings = calculateStandings();
+            const table = document.getElementById('standing-table');
+            table.innerHTML = standings.map(([name, score]) => `
+                <tr class="border-b">
+                    <td class="px-4 py-3 font-medium">${name}</td>
+                    <td class="px-4 py-3 text-center text-indigo-600 font-bold">${score}</td>
+                    <td class="px-4 py-3 text-center text-xs text-gray-400">${score > 0 ? '領先中' : '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showSection(id) {
+            document.getElementById('section-matches').classList.toggle('hidden', id !== 'matches');
+            document.getElementById('section-standing').classList.toggle('hidden', id !== 'standing');
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
