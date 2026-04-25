@@ -3,115 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 智慧賽程系統</title>
+    <title>生態砂鍋盃 - 即時比分看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body class="bg-gray-100 text-gray-900 pb-10">
 
-    <header class="bg-indigo-700 text-white p-6 text-center shadow-xl">
-        <h1 class="text-2xl font-bold tracking-wider">🍲 生態砂鍋盃羽球官網</h1>
-        <div class="mt-2 text-xs opacity-75 flex justify-center space-x-4">
-            <span>● 自動計分系統</span>
-            <span>● 即時賽程更新</span>
+    <header class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 text-center shadow-lg mb-6">
+        <h1 class="text-3xl font-black tracking-widest">🍲 生態砂鍋盃</h1>
+        <div class="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-xs animate-pulse">
+            ● 雲端即時更新中
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 pb-20">
+    <main class="max-w-4xl mx-auto px-4">
         
-        <div class="flex bg-white rounded-lg p-1 shadow-sm mb-6">
-            <button onclick="showSection('matches')" class="flex-1 py-2 text-sm font-medium rounded-md hover:bg-indigo-50 focus:bg-indigo-100">今日賽程</button>
-            <button onclick="showSection('standing')" class="flex-1 py-2 text-sm font-medium rounded-md hover:bg-indigo-50 focus:bg-indigo-100">積分榜(自動計算)</button>
+        <div class="flex bg-white rounded-xl p-1 shadow-md mb-8 sticky top-4 z-10 border border-emerald-100">
+            <button onclick="showSection('matches')" id="btn-matches" class="flex-1 py-3 text-sm font-bold rounded-lg transition-all bg-emerald-600 text-white">
+                🏃 賽程看板
+            </button>
+            <button onclick="showSection('standing')" id="btn-standing" class="flex-1 py-3 text-sm font-bold rounded-lg transition-all text-emerald-600">
+                🏆 積分排名
+            </button>
         </div>
 
-        <div id="section-matches" class="space-y-6">
-            <h2 class="text-lg font-bold text-indigo-800 border-b-2 border-indigo-200 pb-2">📅 比賽場次</h2>
-            <div id="match-container" class="space-y-4"></div>
+        <div id="loading-spinner" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+            <p class="mt-4 text-gray-500 font-medium">同步 Google 試算表資料...</p>
         </div>
 
-        <div id="section-standing" class="hidden space-y-6">
-            <h2 class="text-lg font-bold text-indigo-800 border-b-2 border-indigo-200 pb-2">🏆 隊伍排名 (得點數)</h2>
-            <div class="overflow-x-auto bg-white rounded-xl shadow">
-                <table class="min-w-full text-sm text-left">
-                    <thead class="bg-gray-100 text-gray-600 uppercase">
+        <div id="section-matches" class="space-y-6 hidden">
+            <div id="match-container" class="grid gap-4">
+                </div>
+        </div>
+
+        <div id="section-standing" class="hidden">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-emerald-100">
+                <table class="min-w-full text-left">
+                    <thead class="bg-emerald-50 text-emerald-700 border-b border-emerald-100">
                         <tr>
-                            <th class="px-4 py-3">隊伍名稱</th>
-                            <th class="px-4 py-3 text-center">勝場(得點)</th>
-                            <th class="px-4 py-3 text-center">狀態</th>
+                            <th class="px-6 py-4 font-black">隊伍名稱</th>
+                            <th class="px-6 py-4 text-center font-black">勝場 (得點)</th>
                         </tr>
                     </thead>
-                    <tbody id="standing-table"></tbody>
+                    <tbody id="standing-table" class="divide-y divide-gray-100">
+                        </tbody>
                 </table>
             </div>
+            <p class="mt-4 text-center text-gray-400 text-xs italic">※ 積分僅統計狀態為「已結束」之場次</p>
         </div>
-
     </main>
 
     <script>
-        // 【資料區】您只需要更新這裡的資料，網站就會自動計算！
-        const matchData = [
-            // 男雙 M 組
-            { id: "M1", time: "18:00", court: "場地 1", type: "男雙", teamA: "兩塊底料", teamB: "爛糊芋頭鍋", ref: "林昱承", scoreA: 21, scoreB: 15, status: "已結束" },
-            { id: "A1", time: "18:00", court: "場地 2", type: "女雙", teamA: "豬大鍋還火着", teamB: "這鍋很有料", ref: "郭文晉", scoreA: 0, scoreB: 0, status: "進行中" },
-            { id: "A3", time: "18:00", court: "場地 3", type: "混雙", teamA: "芋頭拌沙茶", teamB: "茼蒿大陸妹", ref: "邱詮祐", scoreA: 0, scoreB: 0, status: "待賽" },
-            
-            // 淘汰賽範例 (當分組出來後再填寫)
-            { id: "女四強1", time: "21:30", court: "場地 2", type: "女雙", teamA: "A組第一", teamB: "B組第二", ref: "現場選", scoreA: 0, scoreB: 0, status: "決賽圈" }
-        ];
+        // 設定你的 Google 試算表 ID
+        const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
 
-        // 自動計算積分邏輯
-        function calculateStandings() {
-            const stats = {};
-            matchData.forEach(m => {
-                [m.teamA, m.teamB].forEach(t => { if(!stats[t]) stats[t] = 0; });
-                if(m.status === "已結束") {
-                    if(m.scoreA > m.scoreB) stats[m.teamA]++;
-                    else if(m.scoreB > m.scoreA) stats[m.teamB]++;
-                }
-            });
-            return Object.entries(stats).sort((a, b) => b[1] - a[1]);
+        let matchData = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch(sheetUrl);
+                const text = await response.text();
+                // 處理 Google Sheets 的 JSON 封裝格式
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                
+                matchData = json.table.rows.map(row => ({
+                    id: row.c[0]?.v || '',
+                    time: row.c[1]?.v || '',
+                    court: row.c[2]?.v || '',
+                    type: row.c[3]?.v || '',
+                    teamA: row.c[4]?.v || 'TBD',
+                    teamB: row.c[5]?.v || 'TBD',
+                    scoreA: row.c[6]?.v || 0,
+                    scoreB: row.c[7]?.v || 0,
+                    ref: row.c[8]?.v || '',
+                    status: row.c[9]?.v || '待賽'
+                }));
+
+                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('section-matches').classList.remove('hidden');
+                renderMatches();
+                renderStandings();
+            } catch (error) {
+                console.error("抓取失敗:", error);
+                document.getElementById('loading-spinner').innerHTML = `<p class="text-red-500">❌ 資料連線失敗，請檢查試算表是否已發佈至網路。</p>`;
+            }
         }
 
-        function renderAll() {
-            // 渲染賽程
-            const matchContainer = document.getElementById('match-container');
-            matchContainer.innerHTML = matchData.map(m => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 ${m.status==='已結束'?'border-gray-300':'border-indigo-500'}">
-                    <div class="flex justify-between text-xs text-gray-500 mb-2">
-                        <span>📍 ${m.court} | 🕒 ${m.time}</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">${m.type}</span>
+        function renderMatches() {
+            const container = document.getElementById('match-container');
+            container.innerHTML = matchData.map(m => {
+                const isFinished = m.status === "已結束";
+                const isPlaying = m.status === "進行中";
+                
+                return `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden ${isFinished ? 'opacity-60' : 'ring-1 ring-emerald-500/20 shadow-emerald-100'}">
+                    <div class="bg-gray-50 px-4 py-2 flex justify-between items-center border-b border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 tracking-tighter uppercase">📍 ${m.court} | 🕒 ${m.time}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded ${isPlaying ? 'bg-orange-500 text-white' : 'bg-emerald-100 text-emerald-700'}">${m.type}</span>
                     </div>
-                    <div class="flex justify-between items-center py-2">
-                        <div class="flex-1 text-center font-bold">${m.teamA}</div>
-                        <div class="flex-1 text-center">
-                            <span class="text-2xl font-black ${m.status==='已結束'?'text-gray-400':'text-red-600'}">${m.scoreA} : ${m.scoreB}</span>
+                    <div class="p-4">
+                        <div class="grid grid-cols-3 items-center gap-2">
+                            <div class="text-sm font-bold text-center leading-tight text-gray-700">${m.teamA}</div>
+                            <div class="flex flex-col items-center">
+                                <div class="text-2xl font-black ${isFinished ? 'text-gray-400' : 'text-red-600'}">${m.scoreA} : ${m.scoreB}</div>
+                                <div class="text-[10px] font-bold ${isPlaying ? 'text-orange-500 underline' : 'text-gray-300'}">${m.status}</div>
+                            </div>
+                            <div class="text-sm font-bold text-center leading-tight text-gray-700">${m.teamB}</div>
                         </div>
-                        <div class="flex-1 text-center font-bold">${m.teamB}</div>
-                    </div>
-                    <div class="mt-2 pt-2 border-t flex justify-between text-xs text-gray-400 italic">
-                        <span>裁判：${m.ref}</span>
-                        <span>狀態：${m.status}</span>
+                        <div class="mt-3 text-center">
+                            <p class="text-[10px] text-gray-400 font-medium">場次編號：${m.id} | 裁判：${m.ref}</p>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+        }
 
-            // 渲染積分榜
-            const standings = calculateStandings();
+        function renderStandings() {
+            const stats = {};
+            matchData.forEach(m => {
+                if (m.teamA && m.teamA !== 'TBD') if (!stats[m.teamA]) stats[m.teamA] = 0;
+                if (m.teamB && m.teamB !== 'TBD') if (!stats[m.teamB]) stats[m.teamB] = 0;
+                
+                if (m.status === "已結束") {
+                    if (parseInt(m.scoreA) > parseInt(m.scoreB)) stats[m.teamA]++;
+                    else if (parseInt(m.scoreB) > parseInt(m.scoreA)) stats[m.teamB]++;
+                }
+            });
+
+            const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
             const table = document.getElementById('standing-table');
-            table.innerHTML = standings.map(([name, score]) => `
-                <tr class="border-b">
-                    <td class="px-4 py-3 font-medium">${name}</td>
-                    <td class="px-4 py-3 text-center text-indigo-600 font-bold">${score}</td>
-                    <td class="px-4 py-3 text-center text-xs text-gray-400">${score > 0 ? '領先中' : '-'}</td>
+            table.innerHTML = sorted.map(([name, score], index) => `
+                <tr class="${index < 3 ? 'bg-emerald-50/30' : ''}">
+                    <td class="px-6 py-4 font-bold text-gray-700">${index === 0 ? '👑 ' : ''}${name}</td>
+                    <td class="px-6 py-4 text-center font-black text-emerald-600 text-xl">${score}</td>
                 </tr>
             `).join('');
         }
 
-        function showSection(id) {
-            document.getElementById('section-matches').classList.toggle('hidden', id !== 'matches');
-            document.getElementById('section-standing').classList.toggle('hidden', id !== 'standing');
+        function showSection(section) {
+            const isMatch = section === 'matches';
+            document.getElementById('section-matches').classList.toggle('hidden', !isMatch);
+            document.getElementById('section-standing').classList.toggle('hidden', isMatch);
+            
+            // 按鈕樣式切換
+            const btnM = document.getElementById('btn-matches');
+            const btnS = document.getElementById('btn-standing');
+            if(isMatch) {
+                btnM.className = "flex-1 py-3 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow-lg shadow-emerald-200";
+                btnS.className = "flex-1 py-3 text-sm font-bold rounded-lg text-emerald-600";
+            } else {
+                btnS.className = "flex-1 py-3 text-sm font-bold rounded-lg bg-emerald-600 text-white shadow-lg shadow-emerald-200";
+                btnM.className = "flex-1 py-3 text-sm font-bold rounded-lg text-emerald-600";
+            }
         }
 
-        renderAll();
+        // 啟動與每 30 秒自動更新
+        fetchData();
+        setInterval(fetchData, 30000);
     </script>
 </body>
 </html>
