@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 戰況看板</title>
+    <title>生態砂鍋盃 - 官方即時看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .tab-active { background-color: #10b981 !important; color: white !important; }
+        .tab-active { background-color: #10b981 !important; color: white !important; transform: scale(1.05); }
+        .final-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #fbbf24; color: white; }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="bg-slate-900 text-white py-10 text-center shadow-xl">
-        <h1 class="text-3xl font-black tracking-widest text-emerald-400">🍲 生態砂鍋盃</h1>
-        <p class="text-[10px] text-slate-400 mt-2 font-bold tracking-[0.3em]">ECO-POT LIVE </p>
+    <header class="bg-slate-900 text-white py-12 text-center shadow-xl">
+        <h1 class="text-4xl font-black tracking-tighter text-emerald-400 italic">🍲 砂鍋盃 LIVE</h1>
+        <p class="text-[10px] text-slate-400 mt-2 font-bold tracking-[0.4em]">ECO POT LIVE</p>
     </header>
 
     <nav class="max-w-md mx-auto px-4 -mt-8 sticky top-4 z-50">
         <div class="flex bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-1.5 border border-white/20">
-            <button onclick="showPage('matches')" id="btn-matches" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all tab-active">賽程</button>
-            <button onclick="showPage('standing')" id="btn-standing" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-500">積分</button>
+            <button onclick="showPage('matches')" id="btn-matches" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all tab-active">賽程看板</button>
+            <button onclick="showPage('standing')" id="btn-standing" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-500">分組積分</button>
             <button onclick="showPage('bracket')" id="btn-bracket" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-500">晉級圖</button>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 mt-4">
-        <div id="loading-msg" class="text-center py-20 text-slate-400">連線中...</div>
-        
+    <main class="max-w-4xl mx-auto p-4 mt-6">
+        <div id="loading-msg" class="text-center py-20 text-slate-400 font-bold">📡 正在同步雲端資料...</div>
         <section id="page-matches" class="hidden space-y-4"></section>
         <section id="page-standing" class="hidden grid gap-6 md:grid-cols-2"></section>
         <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar">
-            <div id="bracket-flow" class="min-w-[800px] py-6 space-y-16"></div>
+            <div id="bracket-flow" class="min-w-[850px] py-6 space-y-16"></div>
         </section>
     </main>
 
     <script>
         const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
-        
         let allData = [];
 
         async function loadData() {
@@ -48,152 +47,187 @@
                 const r = await fetch(sheetUrl);
                 const t = await r.text();
                 const j = JSON.parse(t.substring(47).slice(0, -2));
-                
                 allData = j.table.rows.map(r => ({
-                    id: r.c[0]?.v ? String(r.c[0].v) : "", // 強制轉字串
-                    time: r.c[1]?.v || "",
-                    court: r.c[2]?.v || "",
-                    type: r.c[3]?.v || "",
-                    teamA: r.c[4]?.v || "TBD",
-                    teamB: r.c[5]?.v || "TBD",
-                    scoreA: r.c[6]?.v || 0,
-                    scoreB: r.c[7]?.v || 0,
-                    ref: r.c[8]?.v || "",
-                    status: r.c[9]?.v || "待賽"
+                    id: r.c[0]?.v ? String(r.c[0].v).toUpperCase().trim() : "", 
+                    time: r.c[1]?.v || "", court: r.c[2]?.v || "",
+                    type: r.c[3]?.v ? String(r.c[3].v).trim() : "",
+                    teamA: r.c[4]?.v ? String(r.c[4].v).trim() : "TBD",
+                    teamB: r.c[5]?.v ? String(r.c[5].v).trim() : "TBD",
+                    scoreA: Number(r.c[6]?.v || 0), scoreB: Number(r.c[7]?.v || 0),
+                    ref: r.c[8]?.v || "", status: r.c[9]?.v ? String(r.c[9].v).trim() : "待賽"
                 }));
-
                 document.getElementById('loading-msg').classList.add('hidden');
                 renderAll();
-            } catch(e) { 
-                document.getElementById('loading-msg').innerHTML = "❌ 資料讀取失敗，請確認網路或試算表權限。";
-                console.error(e); 
-            }
+            } catch(e) { console.error(e); }
         }
 
         function renderAll() {
             renderMatches();
             renderStandings();
             renderBracketFlow();
-            // 預設顯示當前頁面
-            const activePage = document.querySelector('.tab-active').id.replace('btn-', '');
-            showPage(activePage);
+            const activeBtn = document.querySelector('.tab-active');
+            if(activeBtn) showPage(activeBtn.id.replace('btn-', ''));
         }
 
         function renderMatches() {
             const container = document.getElementById('page-matches');
-            container.innerHTML = allData.map(m => `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center text-[10px] font-black mb-3 pb-2 border-b">
-                        <span class="text-emerald-600">${m.id} | ${m.type}</span>
-                        <span class="text-slate-400">🕒 ${m.time} | 📍 ${m.court}</span>
+            container.innerHTML = allData.map(m => {
+                const isFinalMatch = m.type.match(/決賽|季殿/);
+                const isSemi = m.type.match(/四強/);
+                const cardStyle = (isFinalMatch || isSemi) ? 'final-card shadow-amber-500/20' : 'bg-white border-slate-200';
+                const ptsTarget = isFinalMatch ? '21分制' : '11分制';
+
+                return `
+                <div class="${cardStyle} p-5 rounded-2xl shadow-lg border relative overflow-hidden">
+                    <div class="flex justify-between items-center text-[10px] font-black mb-3 pb-2 border-b border-current/10">
+                        <span class="${isFinalMatch?'text-amber-400':(isSemi?'text-emerald-400':'text-emerald-600')}">
+                            ${isFinalMatch?'🏆 ':''} ${m.id} | ${m.type} (${ptsTarget})
+                        </span>
+                        <span class="opacity-60 font-bold">🕒 ${m.time} | 📍 ${m.court}</span>
                     </div>
                     <div class="flex items-center justify-between gap-4">
-                        <div class="flex-1 text-center font-bold text-sm text-slate-700">${m.teamA}</div>
-                        <div class="text-2xl font-black text-slate-900">${m.scoreA} : ${m.scoreB}</div>
-                        <div class="flex-1 text-center font-bold text-sm text-slate-700">${m.teamB}</div>
+                        <div class="flex-1 text-center font-black text-sm leading-tight">${m.teamA}</div>
+                        <div class="text-3xl font-black italic tabular-nums px-3">${m.scoreA}:${m.scoreB}</div>
+                        <div class="flex-1 text-center font-black text-sm leading-tight">${m.teamB}</div>
                     </div>
-                    <div class="mt-3 flex justify-between text-[10px] text-slate-400 italic">
-                        <span>裁判：${m.ref}</span>
-                        <span class="${m.status==='進行中'?'text-orange-500 font-black animate-pulse':'text-slate-300'}">${m.status}</span>
+                    <div class="mt-4 flex justify-between items-center text-[10px]">
+                        <div class="opacity-50 italic">裁判：${m.ref}</div>
+                        <div class="${m.status==='進行中'?'text-orange-400 animate-pulse font-black':'font-bold opacity-60'}">${m.status}</div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
-                { title: "男雙 (單循環)", filter: "男雙", sub: "" },
-                { title: "女雙 A組", filter: "女雙", sub: "A" },
-                { title: "女雙 B組", filter: "女雙", sub: "B" },
-                { title: "混雙 A組", filter: "混雙", sub: "A" },
-                { title: "混雙 B組", filter: "混雙", sub: "B" },
-                { title: "混雙 C組", filter: "混雙", sub: "C" }
+                { title: "男雙 (單循環)", type: "男雙", sub: "M", top: 2 },
+                { title: "女雙 A組", type: "女雙", sub: "A", top: 2 },
+                { title: "女雙 B組", type: "女雙", sub: "B", top: 2 },
+                { title: "混雙 A組", type: "混雙", sub: "A", top: 2 },
+                { title: "混雙 B組", type: "混雙", sub: "B", top: 2 },
+                { title: "混雙 C組", type: "混雙", sub: "C", top: 2 }
             ];
 
             container.innerHTML = configs.map(cfg => {
                 const stats = {};
-                allData.forEach(m => {
-                    const isType = m.type.includes(cfg.filter);
-                    const isSub = cfg.sub === "" ? !m.type.match(/四強|決賽/) : m.id.startsWith(cfg.sub);
-                    const isElimination = m.type.match(/四強|決賽|季殿/);
+                const groupMatches = allData.filter(m => m.type === cfg.type && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿/));
 
-                    if (isType && isSub && !isElimination) {
-                        [m.teamA, m.teamB].forEach(t => { if(t && t!=='TBD' && !stats[t]) stats[t] = 0; });
-                        if(m.status === "已結束") {
-                            if(Number(m.scoreA) > Number(m.scoreB)) stats[m.teamA]++;
-                            else if(Number(m.scoreB) > Number(m.scoreA)) stats[m.teamB]++;
-                        }
+                groupMatches.forEach(m => {
+                    [m.teamA, m.teamB].forEach(t => { 
+                        if(t && t!=='TBD' && !stats[t]) stats[t] = { name: t, win: 0, totalScore: 0 }; 
+                    });
+                    if(m.status === "已結束") {
+                        stats[m.teamA].totalScore += m.scoreA;
+                        stats[m.teamB].totalScore += m.scoreB;
+                        if(m.scoreA > m.scoreB) { stats[m.teamA].win++; }
+                        else if(m.scoreB > m.scoreA) { stats[m.teamB].win++; }
                     }
                 });
 
-                const sorted = Object.entries(stats).sort((a,b) => b[1]-a[1]);
-                if (sorted.length === 0) return "";
+                const sorted = Object.values(stats).sort((a, b) => {
+                    // 3.2 積點多寡 (第一順位)
+                    if (b.win !== a.win) return b.win - a.win;
+                    
+                    // 3.4 兩隊平手：比對戰勝負 (第二順位)
+                    const tiedTeams = Object.values(stats).filter(x => x.win === a.win);
+                    if (tiedTeams.length === 2) {
+                        const h2h = groupMatches.find(m => (m.teamA === a.name && m.teamB === b.name) || (m.teamA === b.name && m.teamB === a.name));
+                        if (h2h && h2h.status === "已結束") {
+                            const winner = h2h.scoreA > h2h.scoreB ? h2h.teamA : h2h.teamB;
+                            return winner === b.name ? 1 : -1;
+                        }
+                    }
 
+                    // 3.5 三隊以上平手：比總勝相加分數 (第三順位)
+                    return b.totalScore - a.totalScore;
+                });
+
+                if (sorted.length === 0) return "";
                 return `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="bg-slate-50 px-4 py-2 border-b text-xs font-black text-slate-500 italic">🏆 ${cfg.title}</div>
-                        <table class="w-full text-left text-sm">
-                            ${sorted.map(([name, win], i) => `
-                                <tr class="border-b border-slate-50 last:border-0">
-                                    <td class="p-3 font-bold text-slate-600">${i+1}. ${name}</td>
-                                    <td class="p-3 text-right font-black text-emerald-600">${win} 勝</td>
-                                </tr>
-                            `).join('')}
-                        </table>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 px-4 py-2 border-b text-[10px] font-black text-slate-500 italic flex justify-between items-center">
+                        <span>🏆 ${cfg.title}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">取前 ${cfg.top} 晉級</span>
                     </div>
-                `;
+                    <table class="w-full text-sm">
+                        ${sorted.map((d, i) => {
+                            const isQualified = i < cfg.top;
+                            const medal = i === 0 ? "🥇" : (i === 1 ? "🥈" : "");
+                            return `
+                            <tr class="border-b border-slate-50 last:border-0 ${!isQualified ? 'opacity-30' : ''}">
+                                <td class="p-3 font-bold text-slate-600">
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] text-emerald-600 font-black">${medal} ${isQualified ? '晉級圈' : ''}</span>
+                                        <span>${i+1}. ${d.name}</span>
+                                    </div>
+                                </td>
+                                <td class="p-3 text-right font-black ${isQualified ? 'text-emerald-600' : 'text-slate-300'}">
+                                    ${d.win} 點
+                                    <div class="text-[8px] font-normal text-slate-400">總勝相加分數: ${d.totalScore}</div>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </table>
+                </div>`;
             }).join('');
         }
 
         function renderBracketFlow() {
             const flow = document.getElementById('bracket-flow');
-            const cats = ["女雙", "混雙"];
-            flow.innerHTML = cats.map(cat => {
-                const semi1 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("1")) || {teamA:'?',teamB:'?',scoreA:0,scoreB:0,status:'待賽'};
-                const semi2 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("2")) || {teamA:'?',teamB:'?',scoreA:0,scoreB:0,status:'待賽'};
-                const final = allData.find(m => m.type.includes(cat) && m.type.includes("決賽")) || {teamA:'TBD',teamB:'TBD',scoreA:0,scoreB:0,status:'待賽'};
+            ["女雙", "混雙"].forEach((cat, idx) => {
+                const s1 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("1")) || {teamA:'?',teamB:'?',scoreA:0,scoreB:0,status:'待賽'};
+                const s2 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("2")) || {teamA:'?',teamB:'?',scoreA:0,scoreB:0,status:'待賽'};
+                const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/)) || {teamA:'TBD',teamB:'TBD',scoreA:0,scoreB:0,status:'待賽'};
+                const third = allData.find(m => m.type.includes(cat) && m.type.includes("季殿")) || null;
                 
-                return `
-                <div>
-                    <h3 class="text-center font-black text-slate-400 mb-6 italic tracking-widest underline decoration-emerald-500 decoration-2 underline-offset-4">${cat} 淘汰賽</h3>
+                const html = `
+                <div class="${idx > 0 ? 'mt-16' : ''}">
+                    <h3 class="text-center font-black text-slate-400 mb-6 italic underline decoration-emerald-500 decoration-2 underline-offset-4">${cat} 淘汰賽階段 (21分制)</h3>
                     <div class="flex items-center justify-around px-4">
-                        <div class="space-y-8">
-                            ${buildNode(semi1, "Semi 1")}
-                            ${buildNode(semi2, "Semi 2")}
+                        <div class="space-y-8">${buildNode(s1, "四強 1")}${buildNode(s2, "四強 2")}</div>
+                        <div class="text-slate-200 font-black text-2xl">➔</div>
+                        <div class="space-y-6">
+                            ${buildNode(f, "🏆 冠亞軍決賽", true)}
+                            ${third ? buildNode(third, "🏅 季殿軍戰", false, true) : ''}
                         </div>
-                        <div class="text-slate-300 font-black text-2xl">➔</div>
-                        ${buildNode(final, "Final", true)}
                     </div>
-                </div>
-                `;
-            }).join('');
+                </div>`;
+                if(idx === 0) flow.innerHTML = html; else flow.innerHTML += html;
+            });
         }
 
-        function buildNode(m, label, isGold = false) {
+        function buildNode(m, label, isFinal = false, isThird = false) {
+            let resA = "", resB = "";
+            if (m.status === "已結束") {
+                if (isFinal) {
+                    resA = m.scoreA > m.scoreB ? "🥇 冠軍" : "🥈 亞軍";
+                    resB = m.scoreB > m.scoreA ? "🥇 冠軍" : "🥈 亞軍";
+                } else if (isThird) {
+                    resA = m.scoreA > m.scoreB ? "🥉 季軍" : "殿軍";
+                    resB = m.scoreB > m.scoreA ? "🥉 季軍" : "殿軍";
+                }
+            }
+            const border = isFinal ? 'border-amber-400' : (isThird ? 'border-orange-400' : 'border-emerald-500');
             return `
-                <div class="bg-white rounded-xl shadow-lg p-3 min-w-[160px] border-l-4 ${isGold?'border-amber-400':'border-emerald-500'}">
-                    <div class="text-[8px] font-black text-slate-400 mb-2 flex justify-between uppercase"><span>${label}</span><span>${m.status}</span></div>
-                    <div class="space-y-1 text-[10px] font-bold">
-                        <div class="flex justify-between"><span>${m.teamA}</span><span>${m.scoreA}</span></div>
-                        <div class="flex justify-between"><span>${m.teamB}</span><span>${m.scoreB}</span></div>
-                    </div>
+            <div class="bg-white rounded-xl shadow-lg p-3 min-w-[200px] border-l-4 ${border}">
+                <div class="text-[8px] font-black text-slate-400 mb-2 flex justify-between uppercase"><span>${label}</span><span>${m.status}</span></div>
+                <div class="space-y-1 text-[11px] font-black text-slate-700">
+                    <div class="flex justify-between items-center"><span>${m.teamA}</span><span class="text-emerald-600">${m.scoreA} <span class="text-[9px] font-bold text-amber-500">${resA}</span></span></div>
+                    <div class="flex justify-between items-center"><span>${m.teamB}</span><span class="text-emerald-600">${m.scoreB} <span class="text-[9px] font-bold text-amber-500">${resB}</span></span></div>
                 </div>
-            `;
+            </div>`;
         }
 
         function showPage(p) {
-            document.getElementById('page-matches').classList.add('hidden');
-            document.getElementById('page-standing').classList.add('hidden');
-            document.getElementById('page-bracket').classList.add('hidden');
+            ['matches', 'standing', 'bracket'].forEach(id => {
+                document.getElementById(`page-${id}`).classList.add('hidden');
+                document.getElementById(`btn-${id}`).classList.remove('tab-active', 'text-slate-500');
+            });
             document.getElementById(`page-${p}`).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('tab-active', 'text-slate-500'));
             document.getElementById(`btn-${p}`).classList.add('tab-active');
         }
-
         loadData();
-        setInterval(loadData, 20000);
+        setInterval(loadData, 20000); // 20秒自動更新一次數據
     </script>
 </body>
 </html>
