@@ -3,22 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生態砂鍋盃 - 官方看板 (終極震撼版)</title>
+    <title>生態砂鍋盃 - 官方即時看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #0f172a; color: #f8fafc; scroll-behavior: smooth; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .tab-active { background-color: #10b981 !important; color: white !important; transform: scale(1.1) rotate(-1deg); box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
         
-        /* --- Page 1 狂暴特效 --- */
+        /* 導航標籤特效 */
+        .tab-active { 
+            background-color: #10b981 !important; 
+            color: white !important; 
+            transform: scale(1.1) rotate(-1deg); 
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); 
+        }
+        
+        /* --- Page 1 狂暴火鍋特效 --- */
         @keyframes hyper-stewing {
             0% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
-            10% { transform: translate(-1px, -1px) rotate(-0.5deg); }
-            20% { transform: translate(1px, 0px) rotate(0.5deg); box-shadow: 0 0 40px #ef4444; }
-            30% { transform: translate(0px, 1px) rotate(0deg); }
-            40% { transform: translate(-1px, 0px) rotate(0.5deg); box-shadow: 0 0 60px #f59e0b; }
-            50% { transform: translate(1px, 1px) rotate(-0.5deg); }
+            10% { transform: translate(-2px, -1px) rotate(-0.5deg); }
+            20% { transform: translate(2px, 0px) rotate(0.5deg); box-shadow: 0 0 40px #ef4444; }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(-2px, -1px) rotate(0.5deg); box-shadow: 0 0 60px #f59e0b; }
+            50% { transform: translate(2px, 1px) rotate(-0.5deg); }
             100% { box-shadow: 0 0 10px #f97316; transform: translate(0,0); }
         }
         .stewing-effect { 
@@ -27,7 +34,7 @@
             z-index: 10;
         }
 
-        /* --- Page 3 創意視覺效果 --- */
+        /* --- Page 3 晉級圖專屬視覺 --- */
         #page-bracket {
             background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
             background-size: 40px 40px;
@@ -35,33 +42,34 @@
         }
         @keyframes bgScroll { from { background-position: 0 0; } to { background-position: 0 400px; } }
 
-        /* 霓虹邊框流動效果 (決賽專用) */
+        /* 霓虹邊框流動 (決賽專用) */
         @keyframes neon-flow {
-            0% { border-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
-            33% { border-color: #ef4444; box-shadow: 0 0 30px #ef4444; }
-            66% { border-color: #f97316; box-shadow: 0 0 30px #f97316; }
-            100% { border-color: #fbbf24; box-shadow: 0 0 10px #fbbf24; }
+            0% { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
+            33% { border-color: #ef4444; box-shadow: 0 0 35px #ef4444; }
+            66% { border-color: #f97316; box-shadow: 0 0 35px #f97316; }
+            100% { border-color: #fbbf24; box-shadow: 0 0 15px #fbbf24; }
         }
-        .final-neon { animation: neon-flow 2s infinite linear; border-width: 4px !important; }
+        .final-neon { animation: neon-flow 1.5s infinite linear; border-width: 4px !important; }
 
-        /* 動態能量連線 */
+        /* 能量連線 */
         .bracket-line-flow {
             height: 4px;
             background: linear-gradient(90deg, transparent, #fbbf24, transparent);
             background-size: 200% 100%;
-            animation: lineFlow 1.5s linear infinite;
+            animation: lineFlow 1.2s linear infinite;
             position: relative;
             flex-grow: 1;
         }
         @keyframes lineFlow { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* 卡片共用樣式 */
+        /* 玻璃帷幕卡片 */
         .bracket-node {
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .bracket-node:hover { transform: scale(1.05); z-index: 20; }
     </style>
 </head>
 <body class="pb-10">
@@ -69,19 +77,19 @@
     <header class="bg-slate-950 text-white py-16 text-center shadow-2xl relative overflow-hidden border-b border-emerald-900/50">
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
         <h1 class="text-6xl font-black tracking-tighter text-emerald-400 italic relative z-10 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]">🍲 砂鍋盃 LIVE</h1>
-        <p class="text-[12px] text-slate-500 mt-4 font-bold tracking-[0.6em] relative z-10 uppercase">ECO POT LIVE</p>
+        <p class="text-[12px] text-slate-500 mt-4 font-bold tracking-[0.6em] relative z-10 uppercase text-center">ECO POT LIVE</p>
     </header>
 
     <nav class="max-w-md mx-auto px-4 -mt-8 sticky top-4 z-50">
-        <div class="flex bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl p-1.5 border border-white/10">
+        <div class="flex bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl p-1.5 border border-white/10">
             <button onclick="showPage('matches')" id="btn-matches" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all tab-active">賽程看板</button>
             <button onclick="showPage('standing')" id="btn-standing" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-400">分組積分</button>
-            <button onclick="showPage('bracket')" id="btn-bracket" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-400">晉級圖</button>
+            <button onclick="showPage('bracket')" id="btn-bracket" class="nav-btn flex-1 py-3 text-xs font-black rounded-xl transition-all text-slate-400">晉級之路</button>
         </div>
     </nav>
 
     <main class="max-w-5xl mx-auto p-4 mt-8">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-2xl">📡 連接生態網路中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-2xl tracking-widest">📡 數據同步中...</div>
         
         <section id="page-matches" class="hidden space-y-6"></section>
         
@@ -114,7 +122,7 @@
                 }));
                 document.getElementById('loading-msg').classList.add('hidden');
                 renderAll();
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("資料讀取失敗:", e); }
         }
 
         function renderAll() {
@@ -133,19 +141,19 @@
                 const cardStyle = isElite ? 'bg-gradient-to-br from-slate-800 to-black border-amber-500/50' : 'bg-slate-900 border-slate-700';
                 const extraClass = (isElite && isLive) ? 'stewing-effect' : (isLive ? 'ring-2 ring-emerald-500' : '');
 
-                return `<div class="${cardStyle} ${extraClass} p-6 rounded-3xl shadow-2xl border relative overflow-hidden transition-all">
+                return `<div class="${cardStyle} ${extraClass} p-6 rounded-3xl shadow-2xl border relative overflow-hidden transition-all duration-300">
                     <div class="flex justify-between items-center text-[11px] font-black mb-4 pb-2 border-b border-white/10 uppercase tracking-widest text-emerald-400">
-                        <span>${isElite?'🔥 ELITE MATCH':'PRELIMINARY'} | ${m.id}</span>
+                        <span>${isElite?'🔥 重點對決':'預賽輪次'} | ${m.id}</span>
                         <span class="text-slate-400">${m.time} | 📍 ${m.court}</span>
                     </div>
                     <div class="flex items-center justify-between gap-6 py-2">
-                        <div class="flex-1 text-center font-black text-lg">${m.teamA}</div>
-                        <div class="text-5xl font-black italic tabular-nums text-white drop-shadow-md">${m.scoreA}:${m.scoreB}</div>
-                        <div class="flex-1 text-center font-black text-lg">${m.teamB}</div>
+                        <div class="flex-1 text-center font-black text-xl text-white">${m.teamA}</div>
+                        <div class="text-5xl font-black italic tabular-nums text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">${m.scoreA}:${m.scoreB}</div>
+                        <div class="flex-1 text-center font-black text-xl text-white">${m.teamB}</div>
                     </div>
                     <div class="mt-5 flex justify-between items-center text-[10px] font-bold">
-                        <div class="text-slate-500">裁判: ${m.ref}</div>
-                        <div class="${isLive ? 'text-orange-500 animate-pulse' : 'text-slate-400'}">${m.status}</div>
+                        <div class="text-slate-500 italic">裁判: ${m.ref}</div>
+                        <div class="${isLive ? 'text-orange-500 animate-pulse font-black text-xs' : 'text-slate-400'}">${m.status}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -166,6 +174,7 @@
                 const stats = {};
                 const groupMatches = allData.filter(m => m.type === cfg.type && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿/));
                 const isGroupFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
+                
                 groupMatches.forEach(m => {
                     [m.teamA, m.teamB].forEach(t => { 
                         if(t && t!=='TBD' && !stats[t]) stats[t] = { name: t, win: 0, totalScore: 0 }; 
@@ -177,6 +186,7 @@
                         else if(m.scoreB > m.scoreA) stats[m.teamB].win++;
                     }
                 });
+                
                 const sorted = Object.values(stats).sort((a, b) => {
                     if (b.win !== a.win) return b.win - a.win;
                     const tiedTeams = Object.values(stats).filter(x => x.win === a.win);
@@ -188,27 +198,29 @@
                     }
                     return b.totalScore - a.totalScore;
                 });
+                
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
                 if (sorted.length === 0) return "";
-                return `<div class="bg-slate-900 rounded-3xl shadow-2xl border border-white/5 overflow-hidden">
-                    <div class="bg-slate-800/50 px-5 py-3 border-b border-white/5 text-[11px] font-black text-emerald-400 italic flex justify-between items-center">
+                
+                return `<div class="bg-slate-900 rounded-3xl shadow-2xl border border-white/5 overflow-hidden transition-all">
+                    <div class="bg-slate-800/50 px-5 py-4 border-b border-white/5 text-[11px] font-black text-emerald-400 italic flex justify-between items-center">
                         <span>🏆 ${cfg.title}</span>
-                        <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[9px]">取 ${cfg.top} 晉級</span>
+                        <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[9px]">取前 ${cfg.top} 名晉級</span>
                     </div>
                     <table class="w-full text-sm">
                         ${sorted.map((d, i) => {
                             const isTop = i < cfg.top;
                             const fadeClass = (isGroupFinished && !isTop) ? 'opacity-10 grayscale' : '';
-                            return `<tr class="border-b border-white/5 last:border-0 transition-all ${fadeClass}">
+                            return `<tr class="border-b border-white/5 last:border-0 transition-all duration-1000 ${fadeClass}">
                                 <td class="p-4 font-bold">
                                     <div class="flex flex-col">
-                                        <span class="text-[9px] text-emerald-500 font-black">${isTop ? 'READY TO QUALIFY' : ''}</span>
-                                        <span class="text-slate-200">${i+1}. ${d.name}</span>
+                                        <span class="text-[9px] text-emerald-500 font-black">${isTop ? '🔥 READY TO QUALIFY' : ''}</span>
+                                        <span class="text-slate-200 text-base">${i+1}. ${d.name}</span>
                                     </div>
                                 </td>
                                 <td class="p-4 text-right font-black ${isTop ? 'text-emerald-400' : 'text-slate-600'}">
-                                    ${d.win} W
-                                    <div class="text-[10px] font-normal opacity-40">PTS: ${d.totalScore}</div>
+                                    <span class="text-lg">${d.win}</span> 勝
+                                    <div class="text-[10px] font-normal opacity-40 uppercase">Total: ${d.totalScore}</div>
                                 </td>
                             </tr>`;
                         }).join('')}
@@ -229,36 +241,37 @@
             const flow = document.getElementById('bracket-flow');
             flow.innerHTML = "";
             ["女雙", "混雙"].forEach((cat) => {
-                let s1_A_def = cat === "女雙" ? `A組第一 (${groupWinners["女雙A"]?.[0] || '?'})` : `A組第一 (${groupWinners["混雙A"]?.[0] || '?'})`;
-                let s1_B_def = cat === "女雙" ? `B組第二 (${groupWinners["女雙B"]?.[1] || '?'})` : `C組第一 (${groupWinners["混雙C"]?.[0] || '?'})`;
-                let s2_A_def = cat === "女雙" ? `B組第一 (${groupWinners["女雙B"]?.[0] || '?'})` : `B組第一 (${groupWinners["混雙B"]?.[0] || '?'})`;
-                let s2_B_def = cat === "女雙" ? `A組第二 (${groupWinners["女雙A"]?.[1] || '?'})` : `A組第二 (${groupWinners["混雙A"]?.[1] || '?'})`;
+                const isGirl = cat === "女雙";
+                let s1_A_def = isGirl ? `A組第一 (${groupWinners["女雙A"]?.[0] || '?'})` : `A組第一 (${groupWinners["混雙A"]?.[0] || '?'})`;
+                let s1_B_def = isGirl ? `B組第二 (${groupWinners["女雙B"]?.[1] || '?'})` : `C組第一 (${groupWinners["混雙C"]?.[0] || '?'})`;
+                let s2_A_def = isGirl ? `B組第一 (${groupWinners["女雙B"]?.[0] || '?'})` : `B組第一 (${groupWinners["混雙B"]?.[0] || '?'})`;
+                let s2_B_def = isGirl ? `A組第二 (${groupWinners["女雙A"]?.[1] || '?'})` : `A組第二 (${groupWinners["混雙A"]?.[1] || '?'})`;
 
-                const s1 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("1")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
-                const s2 = allData.find(m => m.type.includes(cat) && m.type.includes("四強") && m.id.includes("2")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
-                const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/)) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
-                const third = allData.find(m => m.type.includes(cat) && m.type.includes("季殿")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
+                const s1 = allData.find(m => m.type.includes(cat) && (m.type.includes("四強") || m.type.includes("SF")) && m.id.includes("1")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
+                const s2 = allData.find(m => m.type.includes(cat) && (m.type.includes("四強") || m.type.includes("SF")) && m.id.includes("2")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
+                const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/) && !m.type.includes("季殿")) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
+                const third = allData.find(m => m.type.includes(cat) && m.type.match(/季殿/)) || {teamA:"TBD", teamB:"TBD", status:"待賽"};
 
-                let f_A_def = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? s1.teamA : s1.teamB) : "SF1 WINNER";
-                let f_B_def = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? s2.teamA : s2.teamB) : "SF2 WINNER";
-                let t_A_def = s1.status === "已結束" ? (s1.scoreA < s1.scoreB ? s1.teamA : s1.teamB) : "SF1 LOSER";
-                let t_B_def = s2.status === "已結束" ? (s2.scoreA < s2.scoreB ? s2.teamA : s2.teamB) : "SF2 LOSER";
+                let f_A_def = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? s1.teamA : s1.teamB) : "SF1 勝者";
+                let f_B_def = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? s2.teamA : s2.teamB) : "SF2 勝者";
+                let t_A_def = s1.status === "已結束" ? (s1.scoreA < s1.scoreB ? s1.teamA : s1.teamB) : "SF1 敗者";
+                let t_B_def = s2.status === "已結束" ? (s2.scoreA < s2.scoreB ? s2.teamA : s2.teamB) : "SF2 敗者";
 
-                flow.innerHTML += `<div class="bracket-container p-8 rounded-[3rem] bg-slate-900/30 border border-white/5 shadow-2xl">
-                    <h3 class="text-center font-black text-white text-4xl mb-20 italic uppercase tracking-[0.3em] flex items-center justify-center gap-6">
+                flow.innerHTML += `<div class="bracket-container p-10 rounded-[3rem] bg-slate-900/30 border border-white/5 shadow-2xl">
+                    <h3 class="text-center font-black text-white text-4xl mb-24 italic uppercase tracking-[0.3em] flex items-center justify-center gap-6">
                         <span class="h-px w-24 bg-gradient-to-r from-transparent to-emerald-500"></span>
-                        ${cat} ROAD TO CHAMPION
+                        ${cat} 決賽之路
                         <span class="h-px w-24 bg-gradient-to-l from-transparent to-emerald-500"></span>
                     </h3>
                     <div class="flex items-center justify-between gap-4">
-                        <div class="w-1/4">${buildNode(s1, "SEMI-FINAL 1", "emerald", s1_A_def, s1_B_def)}</div>
+                        <div class="w-1/4">${buildNode(s1, "四強淘汰賽 1", "emerald", s1_A_def, s1_B_def)}</div>
                         <div class="bracket-line-flow"></div>
-                        <div class="w-1/3 flex flex-col gap-20">
-                            <div class="relative">${buildNode(f, "GRAND FINAL", "final", f_A_def, f_B_def)}</div>
-                            <div class="relative">${buildNode(third, "3RD PLACE MATCH", "orange", t_A_def, t_B_def)}</div>
+                        <div class="w-1/3 flex flex-col gap-24">
+                            <div class="relative">${buildNode(f, "🏆 冠亞軍總決賽", "final", f_A_def, f_B_def)}</div>
+                            <div class="relative">${buildNode(third, "🏅 季殿軍爭奪戰", "orange", t_A_def, t_B_def)}</div>
                         </div>
                         <div class="bracket-line-flow" style="transform: scaleX(-1);"></div>
-                        <div class="w-1/4">${buildNode(s2, "SEMI-FINAL 2", "emerald", s2_A_def, s2_B_def)}</div>
+                        <div class="w-1/4">${buildNode(s2, "四強淘汰賽 2", "emerald", s2_A_def, s2_B_def)}</div>
                     </div>
                 </div>`;
             });
@@ -271,11 +284,11 @@
             
             if (m.status === "已結束") {
                 if (isFinal) {
-                    resA = m.scoreA > m.scoreB ? "🥇 CHAMP" : "🥈 SILVER";
-                    resB = m.scoreB > m.scoreA ? "🥇 CHAMP" : "🥈 SILVER";
+                    resA = m.scoreA > m.scoreB ? "🥇 冠軍" : "🥈 亞軍";
+                    resB = m.scoreB > m.scoreA ? "🥇 冠軍" : "🥈 亞軍";
                 } else if (type === "orange") {
-                    resA = m.scoreA > m.scoreB ? "🥉 BRONZE" : "4TH";
-                    resB = m.scoreB > m.scoreA ? "🥉 BRONZE" : "4TH";
+                    resA = m.scoreA > m.scoreB ? "🥉 季軍" : "殿軍";
+                    resB = m.scoreB > m.scoreA ? "🥉 季軍" : "殿軍";
                 }
             }
             const nameA = getDisplayName(m, 'teamA', defA);
@@ -287,18 +300,18 @@
             else if (type === "emerald") borderClass = "border-emerald-500";
 
             return `<div class="bracket-node rounded-3xl p-6 border-2 ${borderClass} relative overflow-hidden">
-                <div class="text-[10px] font-black mb-4 flex justify-between items-center text-slate-400">
+                <div class="text-[10px] font-black mb-4 flex justify-between items-center text-slate-400 relative z-10">
                     <span class="bg-slate-800 px-3 py-1 rounded-full uppercase tracking-widest">${label}</span>
-                    <span class="${isLive ? 'text-orange-500 animate-pulse' : ''}">${m.status}</span>
+                    <span class="${isLive ? 'text-orange-500 animate-pulse font-black' : ''}">${m.status}</span>
                 </div>
-                <div class="space-y-4 text-lg font-black text-white relative z-10">
+                <div class="space-y-4 text-xl font-black text-white relative z-10">
                     <div class="flex justify-between items-center">
                         <span class="truncate pr-4">${nameA}</span>
-                        <span class="text-emerald-400 tabular-nums text-2xl">${m.scoreA} <span class="text-[10px] block text-amber-500">${resA}</span></span>
+                        <span class="text-emerald-400 tabular-nums text-2xl">${m.scoreA} <span class="text-[10px] block text-amber-500 mt-1">${resA}</span></span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="truncate pr-4">${nameB}</span>
-                        <span class="text-emerald-400 tabular-nums text-2xl">${m.scoreB} <span class="text-[10px] block text-amber-500">${resB}</span></span>
+                        <span class="text-emerald-400 tabular-nums text-2xl">${m.scoreB} <span class="text-[10px] block text-amber-500 mt-1">${resB}</span></span>
                     </div>
                 </div>
             </div>`;
@@ -316,6 +329,8 @@
                 setTimeout(() => { container.scrollLeft = (container.scrollWidth - container.clientWidth) / 2; }, 100);
             }
         }
+
+        // 啟動與自動定時刷新
         loadData();
         setInterval(loadData, 15000);
     </script>
