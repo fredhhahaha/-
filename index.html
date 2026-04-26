@@ -39,9 +39,9 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 mt-12">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-lg">📡 正在獲取選手編號與戰況...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-lg">📡 正在連接賽事伺服器...</div>
         
-        <section id="page-matches" class="hidden space-y-5"></section>
+        <section id="page-matches" class="hidden space-y-4"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden w-full overflow-x-auto no-scrollbar rounded-[3rem] p-4 md:p-16 bg-slate-950/40 border border-white/5 shadow-inner">
             <div id="bracket-flow" class="min-w-[1200px] flex flex-col items-center space-y-48"></div>
@@ -53,7 +53,7 @@
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
         let allData = [];
         let groupWinners = {};
-        let isFirstLoad = true; // 用於控制初始頁面顯示
+        let isFirstLoad = true;
 
         async function loadData() {
             try {
@@ -69,14 +69,8 @@
                     ref: r.c[8]?.v || "", status: String(r.c[9]?.v || "待賽").trim()
                 }));
                 document.getElementById('loading-msg').classList.add('hidden');
-                
                 renderAll();
-
-                // 修正：初始進去自動顯示 Page 1
-                if(isFirstLoad) {
-                    showPage('matches');
-                    isFirstLoad = false;
-                }
+                if(isFirstLoad) { showPage('matches'); isFirstLoad = false; }
             } catch(e) { console.error(e); }
         }
 
@@ -90,28 +84,34 @@
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
-                return `<div class="match-banner p-8 rounded-[2.5rem] flex items-center justify-between group">
-                    <div class="w-2/5 text-right">
-                        <div class="text-xs text-slate-500 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">${m.type}</div>
-                        <div class="text-3xl font-black">${m.teamA}</div>
+                return `<div class="match-banner p-6 rounded-[2rem] flex items-center justify-between group transition-all hover:bg-white/5">
+                    <div class="w-1/3 text-right">
+                        <div class="text-[9px] text-slate-600 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">${m.type}</div>
+                        <div class="text-2xl md:text-3xl font-black truncate">${m.teamA}</div>
                     </div>
                     
-                    <div class="flex flex-col items-center px-6">
-                        <div class="text-[10px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-0.5 rounded-full mb-3 tracking-tighter">MATCH #${m.id}</div>
-                        <div class="text-5xl font-black italic text-white tabular-nums flex items-center gap-4">
+                    <div class="flex flex-col items-center px-4 w-1/3">
+                        <div class="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-3 py-0.5 rounded-full mb-2 tracking-tighter">MATCH #${m.id}</div>
+                        <div class="text-4xl md:text-5xl font-black italic text-white tabular-nums flex items-center gap-3">
                             <span class="${m.scoreA > m.scoreB ? 'text-emerald-400' : ''}">${m.scoreA}</span>
-                            <span class="text-slate-700 text-3xl">:</span>
+                            <span class="text-slate-800 text-2xl">:</span>
                             <span class="${m.scoreB > m.scoreA ? 'text-emerald-400' : ''}">${m.scoreB}</span>
                         </div>
-                        <span class="mt-4 px-4 py-1 rounded-full text-[9px] ${isLive ? 'bg-orange-500 text-white animate-pulse' : 'bg-slate-800 text-slate-500'} font-black tracking-widest uppercase">${m.status}</span>
-                        <div class="text-[10px] text-slate-500 font-bold mt-4 flex gap-5 opacity-70">
-                            <span>🕒 ${m.time}</span><span>📍 ${m.court}</span><span>👤 ${m.ref}</span>
+                        
+                        <div class="mt-4 flex items-center gap-4 text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                            <span class="flex items-center gap-1">🕒 ${m.time}</span>
+                            <span class="w-px h-2 bg-slate-800"></span>
+                            <span class="flex items-center gap-1">📍 ${m.court}</span>
+                            <span class="w-px h-2 bg-slate-800"></span>
+                            <span class="flex items-center gap-1 px-2 py-0.5 rounded ${isLive ? 'bg-orange-500 text-white animate-pulse' : 'bg-slate-800 text-slate-400'} uppercase tracking-widest">${m.status}</span>
+                            <span class="w-px h-2 bg-slate-800"></span>
+                            <span class="flex items-center gap-1">👤 ${m.ref}</span>
                         </div>
                     </div>
                     
-                    <div class="w-2/5 text-left">
-                        <div class="text-xs text-slate-500 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">${m.type}</div>
-                        <div class="text-3xl font-black">${m.teamB}</div>
+                    <div class="w-1/3 text-left">
+                        <div class="text-[9px] text-slate-600 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">${m.type}</div>
+                        <div class="text-2xl md:text-3xl font-black truncate">${m.teamB}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -128,67 +128,42 @@
                 { title: "混雙 C", type: "混雙", sub: "C", top: 1 }
             ];
             groupWinners = {};
-
             container.innerHTML = configs.map(cfg => {
                 const stats = {};
-                const groupMatches = allData.filter(m => m.type.includes(cfg.type) && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿|SF|Final/i));
+                const groupMatches = allData.filter(m => m.type.includes(cfg.type) && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿/i));
                 const isAllFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
-
                 groupMatches.forEach(m => {
-                    const getNo = (teamName, matchId) => {
-                        const parts = matchId.split('-');
-                        if (teamName === m.teamA) return parts[0] || "";
-                        if (teamName === m.teamB) return parts[1] || "";
-                        return "";
-                    };
-
+                    const getNo = (t, i) => { const p = i.split('-'); return t === m.teamA ? p[0] : (t === m.teamB ? p[1] : ""); };
                     [ {n: m.teamA, s: m.scoreA}, {n: m.teamB, s: m.scoreB} ].forEach(t => {
                         if(t.n && t.n !== 'TBD') {
                             if(!stats[t.n]) stats[t.n] = { name: t.n, win: 0, score: 0, no: getNo(t.n, m.id) };
                             if(m.status === "已結束") {
                                 stats[t.n].score += t.s;
-                                const oppScore = (t.n === m.teamA) ? m.scoreB : m.scoreA;
-                                if(t.s > oppScore) stats[t.n].win++;
+                                if(t.s > (t.n === m.teamA ? m.scoreB : m.scoreA)) stats[t.n].win++;
                             }
                         }
                     });
                 });
-
-                const sorted = Object.values(stats).sort((a, b) => (b.win !== a.win) ? (b.win - a.win) : (b.score - a.score));
+                const sorted = Object.values(stats).sort((a, b) => (b.win - a.win) || (b.score - a.score));
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
                 if (sorted.length === 0) return "";
-
                 return `<div class="bg-slate-900 rounded-3xl p-6 border border-white/5 relative shadow-2xl">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="text-emerald-400 font-black italic text-xl">🏆 ${cfg.title}</span>
-                        <span class="text-[10px] bg-white/5 px-2 py-1 rounded text-slate-500 font-bold uppercase tracking-tighter">晉級應取: ${cfg.top}</span>
-                    </div>
+                    <div class="flex justify-between items-center mb-6"><span class="text-emerald-400 font-black italic text-xl">🏆 ${cfg.title}</span><span class="text-[10px] bg-white/5 px-2 py-1 rounded text-slate-500 font-bold uppercase tracking-tighter">晉級應取: ${cfg.top}</span></div>
                     <table class="w-full text-sm">
                         <tr class="text-[9px] text-slate-600 font-bold border-b border-white/5 uppercase"><td class="pb-2">選手編號 & 姓名</td><td class="pb-2 text-right">勝場 (W)</td><td class="pb-2 text-right">勝分 (PTS)</td></tr>
-                        ${sorted.map((d, i) => `
-                            <tr class="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                <td class="py-4 font-bold text-white">
-                                    <span class="text-emerald-500/50 mr-2 tabular-nums">${d.no}</span>${d.name} ${isAllFinished && i < cfg.top ? (i===0?'🥇':'🥈'):''}
-                                </td>
-                                <td class="py-4 text-right font-black text-emerald-400">${d.win} <span class="text-[9px] text-slate-500 font-normal">W</span></td>
-                                <td class="py-4 text-right text-slate-400 italic">${d.score} <span class="text-[9px] text-slate-500 font-normal tracking-tighter uppercase">Pts</span></td>
-                            </tr>
-                        `).join('')}
+                        ${sorted.map((d, i) => `<tr class="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"><td class="py-4 font-bold text-white"><span class="text-emerald-500/50 mr-2 tabular-nums">${d.no}</span>${d.name} ${isAllFinished && i < cfg.top ? (i===0?'🥇':'🥈'):''}</td><td class="py-4 text-right font-black text-emerald-400">${d.win} W</td><td class="py-4 text-right text-slate-400 italic">${d.score} Pts</td></tr>`).join('')}
                     </table>
                 </div>`;
             }).join('');
         }
 
         function buildSymmetricBox(m, label, type, curA, curB) {
-            const isFinal = type === "final", isThird = type === "third";
+            const isF = type === "final", isT = type === "third";
             const fA = /組|第一|第二|勝者|敗者/.test(m.teamA) || m.teamA === "TBD" ? curA : m.teamA;
             const fB = /組|第一|第二|勝者|敗者/.test(m.teamB) || m.teamB === "TBD" ? curB : m.teamB;
-            let style = isFinal ? "final-gold" : (isThird ? "border-orange-500/30 bg-orange-500/5" : "border-white/5 bg-slate-900/60");
-
-            return `<div class="bracket-node w-80 rounded-[2.5rem] p-7 border-2 transition-all shadow-2xl ${style}">
-                <div class="text-[10px] font-black mb-5 flex justify-between text-slate-500 uppercase tracking-widest">
-                    <span>${label}</span><span class="${m.status === '進行中' ? 'text-orange-500 animate-pulse' : ''}">${m.status}</span>
-                </div>
+            let s = isF ? "final-gold" : (isT ? "border-orange-500/30 bg-orange-500/5" : "border-white/5 bg-slate-900/60");
+            return `<div class="bracket-node w-80 rounded-[2.5rem] p-7 border-2 transition-all shadow-2xl ${s}">
+                <div class="text-[10px] font-black mb-5 flex justify-between text-slate-500 uppercase tracking-widest"><span>${label}</span><span class="${m.status === '進行中' ? 'text-orange-500 animate-pulse' : ''}">${m.status}</span></div>
                 <div class="space-y-6 font-black text-2xl text-white">
                     <div class="flex justify-between items-center"><span class="truncate w-44">${fA}</span><span class="text-emerald-400 tabular-nums">${m.scoreA}</span></div>
                     <div class="flex justify-between items-center"><span class="truncate w-44">${fB}</span><span class="text-emerald-400 tabular-nums">${m.scoreB}</span></div>
@@ -213,33 +188,17 @@
                 const t = allData.find(m => m.type.includes(cat) && m.type.match(/季殿/)) || {scoreA:0, scoreB:0, status:"待賽"};
                 let l1 = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? s1.teamB : s1.teamA) : "敗者 1";
                 let l2 = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? s2.teamB : s2.teamA) : "敗者 2";
-
-                flow.innerHTML += `<div class="w-full relative">
-                    <h3 class="text-center font-black text-4xl text-white mb-20 italic uppercase tracking-tighter opacity-80">${cat} 系列總決賽</h3>
-                    <div class="flex items-center justify-between gap-4 relative">
-                        <div class="flex-1 flex justify-start">${buildSymmetricBox(s1, "Semi-Final 1", "normal", s1A, s1B)}</div>
-                        <div class="flex-[1.5] flex flex-col items-center gap-12 relative">
-                            <div class="line-glow"></div>
-                            ${buildSymmetricBox(f, "👑 Championship", "final", "勝者 1", "勝者 2")}
-                            ${buildSymmetricBox(t, "🥉 3rd Place", "third", l1, l2)}
-                        </div>
-                        <div class="flex-1 flex justify-end">${buildSymmetricBox(s2, "Semi-Final 2", "normal", s2A, s2B)}</div>
-                    </div>
-                </div>`;
+                flow.innerHTML += `<div class="w-full relative"><h3 class="text-center font-black text-4xl text-white mb-20 italic uppercase tracking-tighter opacity-80">${cat} Series Finals</h3><div class="flex items-center justify-between gap-4 relative"><div class="flex-1 flex justify-start">${buildSymmetricBox(s1, "Semi-Final 1", "normal", s1A, s1B)}</div><div class="flex-[1.5] flex flex-col items-center gap-12 relative"><div class="line-glow"></div>${buildSymmetricBox(f, "👑 Championship", "final", "勝者 1", "勝者 2")}${buildSymmetricBox(t, "🥉 3rd Place", "third", l1, l2)}</div><div class="flex-1 flex justify-end">${buildSymmetricBox(s2, "Semi-Final 2", "normal", s2A, s2B)}</div></div></div>`;
             });
         }
 
         function showPage(p) {
             ['matches', 'standing', 'bracket'].forEach(id => {
-                const sec = document.getElementById(`page-${id}`);
-                const btn = document.getElementById(`btn-${id}`);
-                if(sec) sec.classList.add('hidden');
-                if(btn) btn.classList.remove('tab-active', 'text-slate-400');
+                const s = document.getElementById(`page-${id}`), b = document.getElementById(`btn-${id}`);
+                if(s) s.classList.add('hidden'); if(b) b.classList.remove('tab-active', 'text-slate-400');
             });
-            const targetSec = document.getElementById(`page-${p}`);
-            const targetBtn = document.getElementById(`btn-${p}`);
-            if(targetSec) targetSec.classList.remove('hidden');
-            if(targetBtn) targetBtn.classList.add('tab-active');
+            const ts = document.getElementById(`page-${p}`), tb = document.getElementById(`btn-${p}`);
+            if(ts) ts.classList.remove('hidden'); if(tb) tb.classList.add('tab-active');
             window.scrollTo(0,0);
         }
 
