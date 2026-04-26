@@ -30,8 +30,12 @@
         .third-box { background-color: #431407 !important; border: 3px solid #9a3412; }
         .qualified-row { border-left: 10px solid #10b981 !important; background: rgba(16, 185, 129, 0.1); }
         
-        .info-tag-court { background-color: #065f46; color: #34d399; padding: 2px 10px; border-radius: 6px; font-weight: 900; font-size: 12px; }
+        .info-tag-court { background-color: #065f46; color: #a7f3d0; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: 1px solid rgba(255,255,255,0.2); }
         .info-tag-ref { background-color: #1e3a8a; color: #93c5fd; padding: 2px 10px; border-radius: 6px; font-weight: 900; font-size: 12px; }
+        
+        /* PAGE2 獲獎者顯眼特效 */
+        .winner-glow { color: #fcd34d !important; text-shadow: 0 0 10px rgba(252, 211, 77, 0.8); font-size: 1.5rem !important; }
+        .runner-up-glow { color: #e2e8f0 !important; text-shadow: 0 0 8px rgba(226, 232, 240, 0.6); font-size: 1.25rem !important; }
     </style>
 </head>
 <body class="pb-24">
@@ -169,8 +173,27 @@
                         ${groupData.list.map((d,i) => {
                             const isQualified = i < cfg.top;
                             const eliminationStyle = (groupData.allFinished && !isQualified) ? 'opacity-30' : 'opacity-100';
+                            
+                            // 獲獎顯眼化邏輯
+                            let rankTag = "";
+                            let specialStyle = "";
+                            if (groupData.allFinished) {
+                                if (i === 0) {
+                                    rankTag = `<span class="ml-2 text-yellow-400 text-sm italic">🏆 冠軍</span>`;
+                                    specialStyle = "winner-glow"; // 套用顯眼 CSS
+                                } else if (i === 1 && cfg.top >= 2) {
+                                    rankTag = `<span class="ml-2 text-slate-300 text-sm italic">🥈 亞軍</span>`;
+                                    specialStyle = "runner-up-glow"; // 套用顯眼 CSS
+                                }
+                            }
+
                             return `<tr class="border-b border-white/5 ${eliminationStyle} ${isQualified ? 'qualified-row' : ''}">
-                                <td class="py-4 font-black text-lg pl-4"><span class="text-emerald-500 mr-2">[${d.code}]</span>${d.name}</td>
+                                <td class="py-4 font-black text-lg pl-4">
+                                    <div class="flex items-center transition-all duration-500 ${specialStyle}">
+                                        <span class="text-emerald-500 mr-2 text-xs opacity-60">[${d.code}]</span>
+                                        <span>${d.name}</span>${rankTag}
+                                    </div>
+                                </td>
                                 <td class="text-right font-black text-emerald-500">${d.win}</td>
                                 <td class="text-right pr-4 font-black text-slate-400">${d.pts}</td>
                             </tr>`;
@@ -183,32 +206,31 @@
 
         function buildSymmetricBox(m, label, boxType, defaultA, defaultB) {
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
-            
             let fA = (m.teamA && !m.teamA.match(/TBD|勝方|敗方|名|組/)) ? m.teamA : defaultA;
             let fB = (m.teamB && !m.teamB.match(/TBD|勝方|敗方|名|組/)) ? m.teamB : defaultB;
             
-            // 冠亞季殿名號邏輯
             let tagA = "", tagB = "";
             if (isFinished) {
                 if (m.scoreA > m.scoreB) {
                     tagA = isF ? " 🏆" : (isT ? " 🥉" : "");
-                    tagB = isF ? " 🎖️" : ""; // 決賽輸家 = 亞軍 🎖️
+                    tagB = isF ? " 🥈" : ""; 
                 } else if (m.scoreB > m.scoreA) {
                     tagB = isF ? " 🏆" : (isT ? " 🥉" : "");
-                    tagA = isF ? " 🎖️" : ""; // 決賽輸家 = 亞軍 🎖️
+                    tagA = isF ? " 🥈" : ""; 
                 }
             }
             
-            // 冠軍強化樣式 (只針對冠軍)
             const winStyle = "text-5xl md:text-6xl text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.8)] scale-110 z-20";
             const styleA = (isF && isFinished && m.scoreA > m.scoreB) ? winStyle : "text-xl md:text-2xl";
             const styleB = (isF && isFinished && m.scoreB > m.scoreA) ? winStyle : "text-xl md:text-2xl";
-
             let liveClass = isLive ? (isF ? "status-live-final" : (isT ? "status-live-third" : "status-live")) : "";
             let styleClass = isF ? "final-gold" : (isT ? "third-box" : "sf-box");
             
             return `<div class="w-full max-w-[400px] rounded-[2.5rem] p-8 border-4 shadow-2xl transition-all ${styleClass} ${liveClass}">
-                <div class="flex justify-between items-center mb-4"><span class="text-[10px] font-black bg-black/20 px-2 py-1 rounded uppercase">${label}</span><div class="flex gap-1"><span class="info-tag-court">${m.court}</span></div></div>
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-xs font-black bg-black/30 px-3 py-1 rounded-lg uppercase tracking-widest">${label}</span>
+                    <div class="flex gap-1"><span class="info-tag-court shadow-lg">${m.court}</span></div>
+                </div>
                 <div class="space-y-6">
                     <div class="flex justify-between items-center gap-4">
                         <div class="font-black break-words flex-1 uppercase transition-all duration-500 ${styleA}">${fA}${tagA}</div>
@@ -219,7 +241,9 @@
                         <div class="text-4xl font-black italic">${m.scoreB}</div>
                     </div>
                 </div>
-                <div class="mt-4 text-center border-t border-black/10 pt-2 text-[10px] font-black opacity-60 uppercase">${m.status} | ${m.id}</div>
+                <div class="mt-6 text-center border-t border-black/10 pt-3 text-[14px] font-black text-black/60 uppercase tracking-widest">
+                    ${m.status} | ${m.id}
+                </div>
             </div>`;
         }
 
@@ -231,10 +255,8 @@
                 let s1B = (cat === "女雙") ? getWinnerName("女雙B", 1, "B組2") : getWinnerName("混雙B", 0, "B組1");
                 let s2A = (cat === "女雙") ? getWinnerName("女雙B", 0, "B組1") : getWinnerName("混雙A", 1, "A組2");
                 let s2B = (cat === "女雙") ? getWinnerName("女雙A", 1, "A組2") : getWinnerName("混雙C", 0, "C組1");
-                
                 const getM = (idTag) => allData.find(m => m.type.includes(cat) && m.id.includes(idTag)) || {id:cat+idTag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定"};
                 const s1 = getM("四強1"), s2 = getM("四強2"), f = getM("冠亞"), t = getM("季殿");
-
                 container.innerHTML += `<div class="flex flex-col items-center w-full px-4"><h2 class="text-6xl md:text-8xl font-black italic mb-12 opacity-10 uppercase tracking-tighter">${cat} FINALS</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center justify-center w-full max-w-6xl">
                         <div class="flex flex-col items-center gap-4 w-full">${buildSymmetricBox(s1, `準決賽 1`, "sf", s1A, s1B)}</div>
