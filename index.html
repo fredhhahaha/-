@@ -12,11 +12,11 @@
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 進行中：紅光震波 (強化 z-index 並確保不被裁切) */
+        /* 進行中：紅光震波 */
         @keyframes shockwave {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); transform: scale(1); }
             50% { transform: scale(1.02); }
-            100% { box-shadow: 0 0 0 50px rgba(239, 68, 68, 0); transform: scale(1); }
+            100% { box-shadow: 0 0 0 60px rgba(239, 68, 68, 0); transform: scale(1); }
         }
         .status-live { 
             animation: shockwave 1.2s infinite cubic-bezier(0.66, 0, 0, 1) !important; 
@@ -37,9 +37,10 @@
         /* 背景連線 */
         .line-glow { height: 6px; background: linear-gradient(90deg, transparent, #10b981, transparent); width: 100%; position: absolute; top: 50%; z-index: -1; filter: blur(2px); }
 
-        /* 防止 Page 3 內容被容器裁切的關鍵設置 */
-        #page-bracket { overflow: visible !important; }
-        .bracket-container { min-height: 2000px; padding: 150px 50px; }
+        /* Page 3 強制置中與防遮擋 */
+        #page-bracket { overflow-x: auto; overflow-y: visible; }
+        .bracket-scroll-container { display: flex; justify-content: center; min-width: min-content; width: 100%; }
+        .bracket-content { width: 1200px; padding: 150px 0; flex-shrink: 0; }
     </style>
 </head>
 <body class="pb-24">
@@ -58,13 +59,15 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 mt-12 md:mt-20">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在部署終極視覺...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在校準中心座標...</div>
         
         <section id="page-matches" class="hidden space-y-6 md:space-y-8"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 md:grid-cols-2 gap-10"></section>
         
-        <section id="page-bracket" class="hidden w-full overflow-x-auto no-scrollbar">
-            <div id="bracket-flow" class="bracket-container min-w-[1200px] flex flex-col items-center space-y-64"></div>
+        <section id="page-bracket" class="hidden w-full no-scrollbar">
+            <div class="bracket-scroll-container">
+                <div id="bracket-flow" class="bracket-content flex flex-col items-center space-y-64"></div>
+            </div>
         </section>
     </main>
 
@@ -92,30 +95,21 @@
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // --- PAGE 1: 裁判回歸與色彩優化 ---
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
-                let theme = 'bg-emerald-600'; 
-                if(m.type.includes('女雙')) theme = 'bg-purple-600';
-                if(m.type.includes('混雙')) theme = 'bg-orange-600';
-
+                let theme = 'bg-emerald-600'; if(m.type.includes('女雙')) theme = 'bg-purple-600'; if(m.type.includes('混雙')) theme = 'bg-orange-600';
                 return `<div class="relative bg-slate-900 p-8 md:p-12 rounded-[2.5rem] md:rounded-[3.5rem] flex items-center justify-between border-l-[10px] md:border-l-[20px] ${isLive ? 'border-red-600 shadow-[0_0_50px_rgba(239,68,68,0.3)] animate-pulse' : 'border-emerald-500/20'}">
                     <div class="absolute -top-4 left-8 md:left-16 ${theme} text-white px-6 py-1.5 rounded-full text-[10px] md:text-sm font-black uppercase z-20 shadow-xl">${m.type}</div>
-                    
                     <div class="w-1/3 text-right text-2xl md:text-5xl font-black truncate">${m.teamA}</div>
                     <div class="w-1/3 flex flex-col items-center px-4">
                         <div class="text-[10px] md:text-xs font-black bg-white/10 text-slate-400 px-4 py-1 rounded mb-4">MATCH #${m.id}</div>
                         <div class="text-4xl md:text-8xl font-black italic tabular-nums">${m.scoreA} : ${m.scoreB}</div>
                         <div class="mt-6 flex flex-wrap justify-center items-center gap-3 md:gap-5 text-[10px] md:text-sm font-bold text-slate-500 uppercase">
-                            <span class="flex items-center gap-1">🕒 ${m.time}</span>
-                            <span class="w-px h-3 bg-slate-800"></span>
-                            <span class="flex items-center gap-1">📍 ${m.court}</span>
-                            <span class="w-px h-3 bg-slate-800"></span>
+                            <span>🕒 ${m.time}</span><span class="w-px h-3 bg-slate-800"></span><span>📍 ${m.court}</span><span class="w-px h-3 bg-slate-800"></span>
                             <span class="${isLive ? 'bg-red-600 text-white px-2 py-0.5 rounded animate-bounce shadow-lg' : 'text-emerald-500'} font-black">${m.status}</span>
-                            <span class="w-px h-3 bg-slate-800"></span>
-                            <span class="flex items-center gap-1">👤 ${m.ref}</span>
+                            <span class="w-px h-3 bg-slate-800"></span><span>👤 ${m.ref}</span>
                         </div>
                     </div>
                     <div class="w-1/3 text-left text-2xl md:text-5xl font-black truncate">${m.teamB}</div>
@@ -154,16 +148,11 @@
             }).join('');
         }
 
-        // --- PAGE 3: 解決遮蓋問題 ---
         function buildSymmetricBox(m, label, type, curA, curB) {
             const isF = type === "final"; const isT = type === "third"; const isLive = m.status === '進行中';
             const fA = /組|第一|第二|勝者|敗者/.test(m.teamA) || m.teamA === "TBD" ? curA : m.teamA;
             const fB = /組|第一|第二|勝者|敗者/.test(m.teamB) || m.teamB === "TBD" ? curB : m.teamB;
-            
-            let s = "bg-slate-950 border-emerald-500/30"; 
-            if (isF) s = "final-gold"; if (isT) s = "bg-orange-950 border-orange-500/50";
-            if (isLive) s = "status-live"; 
-
+            let s = "bg-slate-950 border-emerald-500/30"; if (isF) s = "final-gold"; if (isT) s = "bg-orange-950 border-orange-500/50"; if (isLive) s = "status-live"; 
             return `<div class="w-96 rounded-[3rem] p-10 border-4 transition-all shadow-2xl ${s}">
                 <div class="text-xs font-black mb-8 flex justify-between uppercase tracking-widest items-center">
                     <span class="${isLive || isF ? 'text-white' : 'text-slate-500'}">${label}</span>
@@ -195,13 +184,13 @@
                 let l1 = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? s1.teamB : s1.teamA) : "SF1 敗隊";
                 let l2 = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? s2.teamB : s2.teamA) : "SF2 敗隊";
 
-                flow.innerHTML += `<div class="w-full relative px-20">
+                flow.innerHTML += `<div class="w-full relative">
                     <h3 class="text-center font-black text-6xl md:text-8xl text-white mb-40 md:mb-60 italic uppercase tracking-tighter opacity-90">${cat} Series Finals</h3>
                     <div class="flex items-center justify-between gap-12 md:gap-24 relative">
                         <div class="flex-1 flex justify-start z-10">${buildSymmetricBox(s1, "Semi-Final 1", "normal", s1A, s1B)}</div>
                         <div class="flex-[1.5] flex flex-col items-center gap-24 md:gap-32 relative z-20">
                             <div class="line-glow"></div>
-                            ${buildSymmetricBox(f, "👑 CHAMPIONSHIP", "final", "Winner 1", "Winner 2")}
+                            ${buildSymmetricBox(f, "👑 CHAMPIONSHIP", "final", "勝者 1", "勝者 2")}
                             ${buildSymmetricBox(t, "🥉 3rd Place Match", "third", l1, l2)}
                         </div>
                         <div class="flex-1 flex justify-end z-10">${buildSymmetricBox(s2, "Semi-Final 2", "normal", s2A, s2B)}</div>
