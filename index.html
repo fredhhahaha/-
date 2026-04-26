@@ -11,7 +11,7 @@
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         
         @keyframes final-super-glow {
-            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
+            0%, 1000% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
             50% { border-color: #ff0000; box-shadow: 0 0 60px #ff0000, inset 0 0 20px #ff0000; filter: brightness(1.4); transform: scale(1.02); }
         }
         .status-live-final { animation: final-super-glow 0.5s infinite ease-in-out !important; border-width: 8px !important; }
@@ -33,9 +33,12 @@
         .info-tag-court { background-color: #065f46; color: #a7f3d0; padding: 4px 14px; border-radius: 8px; font-weight: 900; font-size: 16px; border: 1px solid rgba(255,255,255,0.2); }
         .info-tag-ref { background-color: #1e3a8a; color: #93c5fd; padding: 2px 10px; border-radius: 6px; font-weight: 900; font-size: 12px; }
         
-        /* PAGE2 獲獎者顯眼特效 */
-        .winner-glow { color: #fcd34d !important; text-shadow: 0 0 10px rgba(252, 211, 77, 0.8); font-size: 1.5rem !important; }
-        .runner-up-glow { color: #e2e8f0 !important; text-shadow: 0 0 8px rgba(226, 232, 240, 0.6); font-size: 1.25rem !important; }
+        /* PAGE2 獲獎者顯眼特效 (僅男雙使用) */
+        .winner-glow { color: #f8fafc !important; text-shadow: 0 0 15px rgba(252, 211, 77, 0.9); font-size: 1.6rem !important; font-weight: 900; }
+        .runner-up-glow { color: #f8fafc !important; text-shadow: 0 0 12px rgba(226, 232, 240, 0.7); font-size: 1.35rem !important; font-weight: 900; }
+        
+        /* PAGE3 冠軍特效 (顏色維持原本) */
+        .final-winner-style { text-shadow: 0 0 20px rgba(253, 224, 71, 0.8); scale: 1.1; z-index: 20; }
     </style>
 </head>
 <body class="pb-24">
@@ -122,9 +125,7 @@
                 const isFinal = m.id.includes('冠亞') || m.id.includes('決賽');
                 const isThird = m.id.includes('季殿');
                 const isSF = m.id.includes('四強');
-                
                 let displayA = m.teamA; let displayB = m.teamB;
-
                 if (isSF) {
                     const cat = m.type.includes('女') ? '女雙' : '混雙';
                     const getW = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
@@ -136,10 +137,8 @@
                         if (displayB.match(/TBD|組|勝方/)) displayB = (cat === '女雙') ? getW("女雙A", 1, "A組2") : getW("混雙C", 0, "C組1");
                     }
                 }
-
                 let theme = 'bg-emerald-600'; if(m.type.includes('女雙')) theme = 'bg-purple-600'; if(m.type.includes('混雙')) theme = 'bg-orange-600';
                 let liveClass = isLive ? (isFinal ? "status-live-final" : (isThird ? "status-live-third" : "status-live")) : "border-white/5";
-                
                 return `<div class="relative bg-slate-900 p-6 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row items-center border-l-[12px] transition-all ${liveClass}">
                     <div class="absolute -top-3 left-10 ${theme} text-white px-4 py-1 rounded-full text-[10px] font-black z-10 shadow-lg">${m.type}</div>
                     <div class="flex-1 text-center md:text-right text-2xl md:text-3xl font-black text-white px-4 break-words w-full">${displayA}</div>
@@ -173,20 +172,18 @@
                         ${groupData.list.map((d,i) => {
                             const isQualified = i < cfg.top;
                             const eliminationStyle = (groupData.allFinished && !isQualified) ? 'opacity-30' : 'opacity-100';
-                            
-                            // 獲獎顯眼化邏輯
                             let rankTag = "";
                             let specialStyle = "";
                             if (groupData.allFinished) {
-                                if (i === 0) {
-                                    rankTag = `<span class="ml-2 text-yellow-400 text-sm italic">🏆 冠軍</span>`;
-                                    specialStyle = "winner-glow"; // 套用顯眼 CSS
-                                } else if (i === 1 && cfg.top >= 2) {
-                                    rankTag = `<span class="ml-2 text-slate-300 text-sm italic">🥈 亞軍</span>`;
-                                    specialStyle = "runner-up-glow"; // 套用顯眼 CSS
+                                if (cfg.k === "男雙M") {
+                                    if (i === 0) { rankTag = `<span class="ml-2 text-yellow-400 text-sm italic">🏆 冠軍</span>`; specialStyle = "winner-glow"; }
+                                    else if (i === 1) { rankTag = `<span class="ml-2 text-slate-300 text-sm italic">🥈 亞軍</span>`; specialStyle = "runner-up-glow"; }
+                                } else {
+                                    // 其他組別僅顯示 1 2 名標籤，不套用發光特效
+                                    if (i === 0) { rankTag = `<span class="ml-2 text-emerald-400 text-xs font-black opacity-80 uppercase">● 第 1 名</span>`; }
+                                    else if (i === 1 && cfg.top >= 2) { rankTag = `<span class="ml-2 text-slate-400 text-xs font-black opacity-80 uppercase">● 第 2 名</span>`; }
                                 }
                             }
-
                             return `<tr class="border-b border-white/5 ${eliminationStyle} ${isQualified ? 'qualified-row' : ''}">
                                 <td class="py-4 font-black text-lg pl-4">
                                     <div class="flex items-center transition-all duration-500 ${specialStyle}">
@@ -208,7 +205,6 @@
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
             let fA = (m.teamA && !m.teamA.match(/TBD|勝方|敗方|名|組/)) ? m.teamA : defaultA;
             let fB = (m.teamB && !m.teamB.match(/TBD|勝方|敗方|名|組/)) ? m.teamB : defaultB;
-            
             let tagA = "", tagB = "";
             if (isFinished) {
                 if (m.scoreA > m.scoreB) {
@@ -219,13 +215,11 @@
                     tagA = isF ? " 🥈" : ""; 
                 }
             }
-            
-            const winStyle = "text-5xl md:text-6xl text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.8)] scale-110 z-20";
+            const winStyle = "text-5xl md:text-6xl final-winner-style";
             const styleA = (isF && isFinished && m.scoreA > m.scoreB) ? winStyle : "text-xl md:text-2xl";
             const styleB = (isF && isFinished && m.scoreB > m.scoreA) ? winStyle : "text-xl md:text-2xl";
             let liveClass = isLive ? (isF ? "status-live-final" : (isT ? "status-live-third" : "status-live")) : "";
             let styleClass = isF ? "final-gold" : (isT ? "third-box" : "sf-box");
-            
             return `<div class="w-full max-w-[400px] rounded-[2.5rem] p-8 border-4 shadow-2xl transition-all ${styleClass} ${liveClass}">
                 <div class="flex justify-between items-center mb-6">
                     <span class="text-xs font-black bg-black/30 px-3 py-1 rounded-lg uppercase tracking-widest">${label}</span>
