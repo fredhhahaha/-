@@ -11,7 +11,7 @@
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         
         @keyframes final-super-glow {
-            0%, 1000% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
+            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
             50% { border-color: #ff0000; box-shadow: 0 0 60px #ff0000, inset 0 0 20px #ff0000; filter: brightness(1.4); transform: scale(1.02); }
         }
         .status-live-final { animation: final-super-glow 0.5s infinite ease-in-out !important; border-width: 8px !important; }
@@ -50,7 +50,7 @@
     </nav>
 
     <main class="w-full max-w-7xl mx-auto p-4 mt-6">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 戰報即時連動中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 同步最新戰況中...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden space-y-24"></section>
@@ -88,6 +88,8 @@
             configs.forEach(cfg => {
                 const stats = {};
                 const groupMatches = allData.filter(m => m.type.includes(cfg.t) && m.id.startsWith(cfg.s) && !m.id.match(/四強|冠亞|決賽|季殿/));
+                const allFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
+                
                 groupMatches.forEach(m => {
                     const idA = m.id.split('-')[0]; const idB = m.id.split('-')[1];
                     [ {n: m.teamA, s: m.scoreA, op: m.scoreB, code: idA}, {n: m.teamB, s: m.scoreB, op: m.scoreA, code: idB} ].forEach(t => {
@@ -100,13 +102,15 @@
                         }
                     });
                 });
-                groupWinners[cfg.k] = { list: Object.values(stats).sort((a,b) => (b.win-a.win) || (b.pts-a.pts)) };
+                groupWinners[cfg.k] = { 
+                    list: Object.values(stats).sort((a,b) => (b.win-a.win) || (b.pts-a.pts)),
+                    allFinished: allFinished 
+                };
             });
         }
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // 1. PAGE 1: 賽程看板 (強化連動：四強賽自動顯示預計名單)
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
@@ -115,14 +119,11 @@
                 const isThird = m.id.includes('季殿');
                 const isSF = m.id.includes('四強');
                 
-                let displayA = m.teamA;
-                let displayB = m.teamB;
+                let displayA = m.teamA; let displayB = m.teamB;
 
-                // 針對「四強賽」在 Page 1 也進行預測顯示
                 if (isSF) {
                     const cat = m.type.includes('女') ? '女雙' : '混雙';
                     const getW = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
-                    
                     if (m.id.includes('四強1')) {
                         if (displayA.match(/TBD|組|勝方/)) displayA = getW(cat+"A", 0, "A組1");
                         if (displayB.match(/TBD|組|勝方/)) displayB = (cat === '女雙') ? getW("女雙B", 1, "B組2") : getW("混雙B", 0, "B組1");
@@ -151,7 +152,6 @@
             }).join('');
         }
 
-        // 2. PAGE 2: 分組積分 (保持原樣)
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
@@ -160,13 +160,21 @@
                 {title:"混雙 B 組",k:"混雙B",top:1,q:"取前 1"}, {title:"混雙 C 組",k:"混雙C",top:1,q:"取前 1"}
             ];
             container.innerHTML = configs.map(cfg => {
-                const groupData = groupWinners[cfg.k] || {list:[]};
+                const groupData = groupWinners[cfg.k] || {list:[], allFinished: false};
                 return `<div class="bg-slate-900 rounded-[2rem] p-6 border border-white/5 shadow-2xl">
                     <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-black text-emerald-400 italic">${cfg.title}</h3><span class="bg-emerald-900 text-emerald-200 px-3 py-1 rounded-lg text-xs font-black uppercase">${cfg.q}</span></div>
                     <table class="w-full text-left">
                         <thead><tr class="text-slate-500 border-b border-white/10 text-xs font-black uppercase"><th class="py-2 pl-4">編號/隊名</th><th class="py-2 text-right">勝場</th><th class="py-2 text-right pr-4">總分</th></tr></thead>
                         <tbody>
-                        ${groupData.list.map((d,i) => `<tr class="border-b border-white/5 ${i < cfg.top ? 'qualified-row' : ''}"><td class="py-4 font-black text-lg pl-4"><span class="text-emerald-500 mr-2">[${d.code}]</span>${d.name}</td><td class="text-right font-black text-emerald-500">${d.win}</td><td class="text-right pr-4 font-black text-slate-400">${d.pts}</td></tr>`).join('')}
+                        ${groupData.list.map((d,i) => {
+                            const isQualified = i < cfg.top;
+                            const eliminationStyle = (groupData.allFinished && !isQualified) ? 'opacity-30' : 'opacity-100';
+                            return `<tr class="border-b border-white/5 ${eliminationStyle} ${isQualified ? 'qualified-row' : ''}">
+                                <td class="py-4 font-black text-lg pl-4"><span class="text-emerald-500 mr-2">[${d.code}]</span>${d.name}</td>
+                                <td class="text-right font-black text-emerald-500">${d.win}</td>
+                                <td class="text-right pr-4 font-black text-slate-400">${d.pts}</td>
+                            </tr>`;
+                        }).join('')}
                         </tbody>
                     </table>
                 </div>`;
@@ -189,7 +197,7 @@
             </div>`;
         }
 
-        // 3. PAGE 3: 晉級之路 (手動優先，預設顯示名次)
+        // 修改點：移除外部重複標題，只保留對戰盒內的標籤
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
@@ -202,14 +210,20 @@
                 const getM = (idTag) => allData.find(m => m.type.includes(cat) && m.id.includes(idTag)) || {id:cat+idTag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定"};
                 const s1 = getM("四強1"), s2 = getM("四強2"), f = getM("冠亞"), t = getM("季殿");
 
-                container.innerHTML += `<div class="flex flex-col items-center w-full"><h2 class="text-6xl md:text-8xl font-black italic mb-12 opacity-10 uppercase tracking-tighter">${cat} FINALS</h2>
-                    <div class="flex flex-col lg:flex-row items-center justify-center gap-10 w-full px-4">
-                        <div class="w-full flex justify-center">${buildSymmetricBox(s1, `${cat} 準決賽 1`, "sf", s1A, s1B)}</div>
-                        <div class="flex flex-col gap-10 w-full items-center">
-                            ${buildSymmetricBox(f, `👑 ${cat} 冠軍賽`, "final", "SF1 勝方", "SF2 勝方")}
-                            ${buildSymmetricBox(t, `🥉 ${cat} 季軍賽`, "third", "SF1 敗方", "SF2 敗方")}
+                container.innerHTML += `<div class="flex flex-col items-center w-full px-4"><h2 class="text-6xl md:text-8xl font-black italic mb-12 opacity-10 uppercase tracking-tighter">${cat} FINALS</h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center justify-center w-full max-w-6xl">
+                        <div class="flex flex-col items-center gap-4 w-full">
+                            ${buildSymmetricBox(s1, `準決賽 1`, "sf", s1A, s1B)}
                         </div>
-                        <div class="w-full flex justify-center">${buildSymmetricBox(s2, `${cat} 準決賽 2`, "sf", s2A, s2B)}</div>
+                        
+                        <div class="flex flex-col gap-12 w-full items-center py-10 lg:py-0 border-y lg:border-y-0 lg:border-x border-white/5">
+                            ${buildSymmetricBox(f, `👑 冠亞賽`, "final", "SF1 勝方", "SF2 勝方")}
+                            ${buildSymmetricBox(t, `🥉 季殿賽`, "third", "SF1 敗方", "SF2 敗方")}
+                        </div>
+
+                        <div class="flex flex-col items-center gap-4 w-full">
+                            ${buildSymmetricBox(s2, `準決賽 2`, "sf", s2A, s2B)}
+                        </div>
                     </div></div>`;
             });
         }
