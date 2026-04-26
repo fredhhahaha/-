@@ -10,17 +10,25 @@
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #010409; color: #f8fafc; }
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         
-        /* 決賽進行中：強力脈衝 */
-        @keyframes final-urgent {
-            0%, 100% { transform: scale(1); border-color: #fbbf24; filter: brightness(1); }
-            50% { transform: scale(1.05); border-color: #ff0000; box-shadow: 0 0 50px rgba(255,0,0,0.4); filter: brightness(1.3); }
+        /* 1. 冠軍賽進行中：金紅最強閃爍 */
+        @keyframes final-pulse {
+            0%, 100% { transform: scale(1); border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24; }
+            50% { transform: scale(1.05); border-color: #ff0000; box-shadow: 0 0 60px #ff0000; filter: brightness(1.3); }
         }
-        .status-live-final { animation: final-urgent 0.6s infinite ease-in-out !important; border-width: 8px !important; }
+        .status-live-final { animation: final-pulse 0.6s infinite ease-in-out !important; border-width: 8px !important; z-index: 50; }
 
-        /* 一般進行中 */
+        /* 2. 季軍賽進行中：橙紅火焰閃爍 (與冠軍區隔) */
+        @keyframes third-pulse {
+            0%, 100% { border-color: #9a3412; box-shadow: 0 0 10px #9a3412; }
+            50% { border-color: #f97316; box-shadow: 0 0 40px #f97316; filter: brightness(1.2); }
+        }
+        .status-live-third { animation: third-pulse 0.8s infinite ease-in-out !important; border-width: 6px !important; }
+
+        /* 3. 四強賽/一般賽進行中：綠色流光 */
         @keyframes live-glow { 0%, 100% { border-color: #1e293b; } 50% { border-color: #10b981; } }
-        .status-live { animation: live-glow 1s infinite; border-width: 6px !important; }
+        .status-live { animation: live-glow 1.2s infinite; border-width: 5px !important; }
 
+        /* 方塊基礎色調 */
         .final-gold { background: linear-gradient(135deg, #f59e0b, #fbbf24) !important; color: #451a03 !important; }
         .sf-box { background-color: #1e1b4b !important; border: 4px solid #4338ca; }
         .third-box { background-color: #431407 !important; border: 4px solid #9a3412; }
@@ -30,8 +38,8 @@
 <body class="pb-24">
 
     <header class="bg-black py-8 text-center border-b-4 border-emerald-500 shadow-2xl">
-       <h1 class="text-5xl md:text-7xl font-black italic text-white tracking-tighter uppercase">🍲 生態砂鍋盃 
-       </h1> <div class="mt-3 text-[10px] text-slate-500 font-bold tracking-[0.5em]">ECO POT LIVE</div>
+        <h1 class="text-5xl md:text-7xl font-black italic text-white tracking-tighter uppercase">🍲 生態砂鍋盃 
+        </h1> <div class="mt-3 text-[10px] text-slate-500 font-bold tracking-[0.5em]">ECO POT LIVE</div>
     </header>
 
     <nav class="fixed bottom-4 left-0 right-0 md:sticky md:top-4 md:bottom-auto max-w-xl mx-auto px-4 z-[100]">
@@ -43,7 +51,7 @@
     </nav>
 
     <main class="w-full max-w-[1400px] mx-auto p-4 mt-8">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 數據即時同步中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在同步砂鍋實況...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden space-y-20"></section>
@@ -73,20 +81,27 @@
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // PAGE 1 (裁判場地 & 隊名不切斷)
+        // PAGE 1 
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
-                const isFinals = m.id.match(/冠亞|決賽|季殿/);
+                const isFinal = m.id.match(/冠亞|決賽/);
+                const isThird = m.id.match(/季殿/);
                 let theme = 'bg-emerald-600'; if(m.type.includes('女雙')) theme = 'bg-purple-600'; if(m.type.includes('混雙')) theme = 'bg-orange-600';
-                let liveClass = isLive ? (isFinals ? "status-live-final" : "status-live") : "border-white/5";
+                
+                let liveClass = "border-white/5";
+                if(isLive) {
+                    if(isFinal) liveClass = "status-live-final";
+                    else if(isThird) liveClass = "status-live-third";
+                    else liveClass = "status-live";
+                }
                 
                 return `<div class="relative bg-slate-900 p-6 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row items-center border-l-[12px] transition-all ${liveClass}">
                     <div class="absolute -top-3 left-10 ${theme} text-white px-4 py-1 rounded-full text-[10px] font-black z-10 shadow-lg">${m.type}</div>
                     <div class="flex-1 text-center md:text-right text-2xl md:text-4xl font-black text-white px-4 break-words w-full">${m.teamA}</div>
                     <div class="flex flex-col items-center justify-center min-w-[120px] md:min-w-[280px] my-4 md:my-0">
-                        <div class="text-[10px] font-black text-slate-500 mb-1 uppercase">${m.id}</div>
+                        <div class="text-[10px] font-black text-slate-500 mb-1">${m.id}</div>
                         <div class="text-6xl md:text-8xl font-black italic tabular-nums text-emerald-400">${m.scoreA}:${m.scoreB}</div>
                         <div class="mt-4 flex flex-col items-center gap-1">
                              <span class="text-[10px] text-slate-400 font-bold tracking-tighter">📍 ${m.court} | ⚖️ 裁判: ${m.ref}</span>
@@ -98,7 +113,7 @@
             }).join('');
         }
 
-        // PAGE 2 (晉級綠條)
+        // PAGE 2 (積分榜)
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [{title:"男雙",type:"男雙",sub:"M",top:2},{title:"女雙 A",type:"女雙",sub:"A",top:2},{title:"女雙 B",type:"女雙",sub:"B",top:2},{title:"混雙 A",type:"混雙",sub:"A",top:2},{title:"混雙 B",type:"混雙",sub:"B",top:1},{title:"混雙 C",type:"混雙",sub:"C",top:1}];
@@ -129,51 +144,54 @@
             }).join('');
         }
 
-        // PAGE 3 (方塊元件)
+        // PAGE 3 方塊組件
         function buildSymmetricBox(m, label, boxType, curA, curB) {
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
-            
-            // 決定顯示名字 (優先用 Excel 名字，沒有才用推播名字)
             let fA = (m.teamA && m.teamA !== "TBD" && !m.teamA.match(/勝方|敗方|第[12]名|組/)) ? m.teamA : curA;
             let fB = (m.teamB && m.teamB !== "TBD" && !m.teamB.match(/勝方|敗方|第[12]名|組/)) ? m.teamB : curB;
 
-            // 榮譽標籤
             let tagA = "", tagB = "";
             if(isFinished) {
                 if(m.scoreA > m.scoreB) tagA = isF ? `<span class="ml-2 bg-white text-black px-2 py-0.5 rounded text-[10px] animate-bounce">🏆 冠軍</span>` : (isT ? `<span class="ml-2 bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[10px]">🥉 季軍</span>` : "");
                 else if(m.scoreB > m.scoreA) tagB = isF ? `<span class="ml-2 bg-white text-black px-2 py-0.5 rounded text-[10px] animate-bounce">🏆 冠軍</span>` : (isT ? `<span class="ml-2 bg-orange-200 text-orange-900 px-2 py-0.5 rounded text-[10px]">🥉 季軍</span>` : "");
             }
 
-            let liveClass = isLive ? (isF ? "status-live-final" : "status-live") : "";
+            let liveClass = "";
+            if(isLive) {
+                if(isF) liveClass = "status-live-final";
+                else if(isT) liveClass = "status-live-third";
+                else liveClass = "status-live";
+            }
             let styleClass = isF ? "final-gold" : (isT ? "third-box" : "sf-box");
             
             return `<div class="w-full max-w-[420px] rounded-[2.5rem] p-10 border-4 shadow-2xl transition-all ${styleClass} ${liveClass}">
                 <div class="text-[10px] font-black mb-4 flex justify-between uppercase opacity-60"><span>${label}</span><span>${m.status}</span></div>
                 <div class="space-y-4 font-black text-2xl md:text-3xl">
-                    <div class="flex justify-between items-center"><div class="flex items-center"><span class="truncate max-w-[200px]">${fA}</span>${tagA}</div><span>${m.scoreA}</span></div>
-                    <div class="flex justify-between items-center"><div class="flex items-center"><span class="truncate max-w-[200px]">${fB}</span>${tagB}</div><span>${m.scoreB}</span></div>
+                    <div class="flex justify-between items-center"><div><span class="truncate max-w-[200px]">${fA}</span>${tagA}</div><span>${m.scoreA}</span></div>
+                    <div class="flex justify-between items-center"><div><span class="truncate max-w-[200px]">${fB}</span>${tagB}</div><span>${m.scoreB}</span></div>
                 </div>
             </div>`;
         }
 
+        // --- PAGE 3 核心連動強化 ---
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
                 const prefix = cat[0]; // '女' 或 '混'
                 
                 // 1. 積分預測
-                let s1A = groupWinners[cat + "A"]?.[0] || 'A1';
-                let s1B = (cat === "女雙") ? (groupWinners["女雙B"]?.[1] || 'B2') : (groupWinners["混雙B"]?.[0] || 'B1');
-                let s2A = (cat === "女雙") ? (groupWinners["女雙B"]?.[0] || 'B1') : (groupWinners["混雙A"]?.[1] || 'A2');
-                let s2B = (cat === "女雙") ? (groupWinners["女雙A"]?.[1] || 'A2') : (groupWinners["混雙C"]?.[0] || 'C1');
+                let s1A = groupWinners[cat + "A"]?.[0] || 'A組1';
+                let s1B = (cat === "女雙") ? (groupWinners["女雙B"]?.[1] || 'B組2') : (groupWinners["混雙B"]?.[0] || 'B組1');
+                let s2A = (cat === "女雙") ? (groupWinners["女雙B"]?.[0] || 'B組1') : (groupWinners["混雙A"]?.[1] || 'A組2');
+                let s2B = (cat === "女雙") ? (groupWinners["女雙A"]?.[1] || 'A組2') : (groupWinners["混雙C"]?.[0] || 'C組1');
                 
-                // 2. 搜尋實時場次 (精準匹配 ID)
-                const s1 = allData.find(m => m.id === (prefix + "四強1")) || {id:cat+"四強1",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
-                const s2 = allData.find(m => m.id === (prefix + "四強2")) || {id:cat+"四強2",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
-                const f = allData.find(m => m.id === (prefix + "冠亞賽")) || {id:cat+"冠亞賽",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
-                const t = allData.find(m => m.id === (prefix + "季殿賽")) || {id:cat+"季殿賽",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
+                // 2. 搜尋實時場次 (使用 Regex 保險匹配：同時包含 類別+四強+數字)
+                const s1 = allData.find(m => new RegExp(`${prefix}.*四強.*1`).test(m.id)) || {id:cat+"四強1",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
+                const s2 = allData.find(m => new RegExp(`${prefix}.*四強.*2`).test(m.id)) || {id:cat+"四強2",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
+                const f = allData.find(m => m.id.includes(prefix) && m.id.match(/冠亞|決賽/)) || {id:cat+"冠亞賽",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
+                const t = allData.find(m => m.id.includes(prefix) && m.id.includes("季殿")) || {id:cat+"季殿賽",teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
 
-                // 3. 勝負連動邏輯
+                // 3. 強制勝負判定
                 let win1 = "四強1 勝方", lose1 = "四強1 敗方", win2 = "四強2 勝方", lose2 = "四強2 敗方";
                 if(s1.status === "已結束") {
                     win1 = s1.scoreA > s1.scoreB ? s1.teamA : s1.teamB;
@@ -189,9 +207,9 @@
                     <h2 class="text-5xl md:text-7xl font-black italic mb-10 opacity-30 uppercase">${cat} FINALS</h2>
                     <div class="flex flex-col lg:flex-row items-center justify-center gap-8 w-full">
                         <div class="w-full flex justify-center">${buildSymmetricBox(s1, `${cat} 準決賽 1`, "sf", s1A, s1B)}</div>
-                        <div class="flex flex-col gap-8 w-full items-center">
+                        <div class="flex flex-col gap-12 w-full items-center">
                             ${buildSymmetricBox(f, `👑 ${cat} 冠軍賽`, "final", win1, win2)}
-                            ${buildSymmetricBox(t, `🥉 ${cat} 季軍賽`, "third", lose1, lose2)}
+                            ${buildSymmetricBox(t, `🥉 ${cat} 季殿賽`, "third", lose1, lose2)}
                         </div>
                         <div class="w-full flex justify-center">${buildSymmetricBox(s2, `${cat} 準決賽 2`, "sf", s2A, s2B)}</div>
                     </div>
