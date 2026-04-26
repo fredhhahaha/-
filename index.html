@@ -10,21 +10,18 @@
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #010409; color: #f8fafc; }
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         
-        /* 冠軍賽發光特效 */
         @keyframes final-super-glow {
-            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
+            0%, 1000% { border-color: #fbbf24; box-shadow: 0 0 20px #fbbf24, inset 0 0 10px #fbbf24; }
             50% { border-color: #ff0000; box-shadow: 0 0 60px #ff0000, inset 0 0 20px #ff0000; filter: brightness(1.4); transform: scale(1.02); }
         }
         .status-live-final { animation: final-super-glow 0.5s infinite ease-in-out !important; border-width: 8px !important; }
 
-        /* 季軍賽發光特效 */
         @keyframes third-super-glow {
             0%, 100% { border-color: #9a3412; box-shadow: 0 0 15px #9a3412; }
             50% { border-color: #f97316; box-shadow: 0 0 40px #f97316; filter: brightness(1.2); }
         }
         .status-live-third { animation: third-super-glow 0.8s infinite ease-in-out !important; border-width: 6px !important; }
 
-        /* 一般比賽 Live 特效 */
         @keyframes live-glow { 0%, 100% { border-color: #1e293b; } 50% { border-color: #10b981; } }
         .status-live { animation: live-glow 1.2s infinite; border-width: 4px !important; }
 
@@ -53,7 +50,7 @@
     </nav>
 
     <main class="w-full max-w-7xl mx-auto p-4 mt-6">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 同步最新戰況中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 戰報即時連動中...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden space-y-24"></section>
@@ -109,20 +106,38 @@
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // 1. PAGE 1: 賽程看板 (手動優先，完全信任試算表)
+        // 1. PAGE 1: 賽程看板 (強化連動：四強賽自動顯示預計名單)
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
                 const isFinal = m.id.includes('冠亞') || m.id.includes('決賽');
                 const isThird = m.id.includes('季殿');
+                const isSF = m.id.includes('四強');
                 
+                let displayA = m.teamA;
+                let displayB = m.teamB;
+
+                // 針對「四強賽」在 Page 1 也進行預測顯示
+                if (isSF) {
+                    const cat = m.type.includes('女') ? '女雙' : '混雙';
+                    const getW = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
+                    
+                    if (m.id.includes('四強1')) {
+                        if (displayA.match(/TBD|組|勝方/)) displayA = getW(cat+"A", 0, "A組1");
+                        if (displayB.match(/TBD|組|勝方/)) displayB = (cat === '女雙') ? getW("女雙B", 1, "B組2") : getW("混雙B", 0, "B組1");
+                    } else if (m.id.includes('四強2')) {
+                        if (displayA.match(/TBD|組|勝方/)) displayA = (cat === '女雙') ? getW("女雙B", 0, "B組1") : getW("混雙A", 1, "A組2");
+                        if (displayB.match(/TBD|組|勝方/)) displayB = (cat === '女雙') ? getW("女雙A", 1, "A組2") : getW("混雙C", 0, "C組1");
+                    }
+                }
+
                 let theme = 'bg-emerald-600'; if(m.type.includes('女雙')) theme = 'bg-purple-600'; if(m.type.includes('混雙')) theme = 'bg-orange-600';
                 let liveClass = isLive ? (isFinal ? "status-live-final" : (isThird ? "status-live-third" : "status-live")) : "border-white/5";
                 
                 return `<div class="relative bg-slate-900 p-6 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row items-center border-l-[12px] transition-all ${liveClass}">
                     <div class="absolute -top-3 left-10 ${theme} text-white px-4 py-1 rounded-full text-[10px] font-black z-10 shadow-lg">${m.type}</div>
-                    <div class="flex-1 text-center md:text-right text-2xl md:text-3xl font-black text-white px-4 break-words w-full">${m.teamA}</div>
+                    <div class="flex-1 text-center md:text-right text-2xl md:text-3xl font-black text-white px-4 break-words w-full">${displayA}</div>
                     <div class="flex flex-col items-center justify-center min-w-[140px] md:min-w-[280px] my-6 md:my-0">
                         <div class="flex gap-2 mb-3"><span class="info-tag-court">${m.court}</span><span class="info-tag-ref">⚖️ ${m.ref}</span></div>
                         <div class="text-7xl md:text-8xl font-black italic tabular-nums text-emerald-400 leading-none">${m.scoreA}:${m.scoreB}</div>
@@ -131,12 +146,12 @@
                              <span class="${isLive ? 'bg-red-600 text-white px-6 py-1 rounded-full text-xs animate-pulse mt-2' : 'mt-2'}">${m.status}</span>
                         </div>
                     </div>
-                    <div class="flex-1 text-center md:text-left text-2xl md:text-3xl font-black text-white px-4 break-words w-full">${m.teamB}</div>
+                    <div class="flex-1 text-center md:text-left text-2xl md:text-3xl font-black text-white px-4 break-words w-full">${displayB}</div>
                 </div>`;
             }).join('');
         }
 
-        // 2. PAGE 2: 分組積分
+        // 2. PAGE 2: 分組積分 (保持原樣)
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
@@ -158,19 +173,14 @@
             }).join('');
         }
 
-        // 核心對戰盒：處理手動填寫名稱
         function buildSymmetricBox(m, label, boxType, defaultA, defaultB) {
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
-            
-            // 邏輯：只要試算表填寫的不是 TBD、勝方、敗方、名、組 等字眼，就顯示填寫的內容
             let fA = (m.teamA && !m.teamA.match(/TBD|勝方|敗方|名|組/)) ? m.teamA : defaultA;
             let fB = (m.teamB && !m.teamB.match(/TBD|勝方|敗方|名|組/)) ? m.teamB : defaultB;
-            
             let tagA = (isFinished && m.scoreA > m.scoreB) ? (isF ? " 🏆" : (isT ? " 🥉" : "")) : "";
             let tagB = (isFinished && m.scoreB > m.scoreA) ? (isF ? " 🏆" : (isT ? " 🥉" : "")) : "";
             let liveClass = isLive ? (isF ? "status-live-final" : (isT ? "status-live-third" : "status-live")) : "";
             let styleClass = isF ? "final-gold" : (isT ? "third-box" : "sf-box");
-            
             return `<div class="w-full max-w-[400px] rounded-[2.5rem] p-8 border-4 shadow-2xl transition-all ${styleClass} ${liveClass}">
                 <div class="flex justify-between items-center mb-4"><span class="text-[10px] font-black bg-black/20 px-2 py-1 rounded uppercase">${label}</span><div class="flex gap-1"><span class="info-tag-court">${m.court}</span></div></div>
                 <div class="space-y-6"><div class="flex justify-between items-start gap-4"><div class="text-xl md:text-2xl font-black break-words flex-1 uppercase">${fA}${tagA}</div><div class="text-4xl font-black italic">${m.scoreA}</div></div>
@@ -179,13 +189,11 @@
             </div>`;
         }
 
-        // 3. PAGE 3: 晉級之路 (手動優先)
+        // 3. PAGE 3: 晉級之路 (手動優先，預設顯示名次)
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
                 const getWinnerName = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
-                
-                // 預設遞補邏輯 (若手動沒填，則顯示這個)
                 let s1A = getWinnerName(cat+"A", 0, "A組1");
                 let s1B = (cat === "女雙") ? getWinnerName("女雙B", 1, "B組2") : getWinnerName("混雙B", 0, "B組1");
                 let s2A = (cat === "女雙") ? getWinnerName("女雙B", 0, "B組1") : getWinnerName("混雙A", 1, "A組2");
