@@ -53,15 +53,87 @@
         /* 列表文字清晰度優化 */
         .team-name-display { color: #ffffff; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         .score-display { color: #34d399; text-shadow: 0 0 20px rgba(52, 211, 153, 0.5); }
+        
+        /* --- PAGE 3 標題顯眼化特效 --- */
+        #page-bracket h2 {
+            opacity: 1 !important; /* 取消透明 */
+            background: linear-gradient(to bottom, #ffffff 20%, #94a3b8 50%, #475569 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.4));
+            letter-spacing: -0.05em;
+            margin-bottom: 2rem !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 標題下方的裝飾線 */
+        #page-bracket h2::after {
+            content: 'FINALS';
+            display: block;
+            font-size: 1.5rem;
+            color: #10b981;
+            letter-spacing: 1em;
+            margin-top: -1rem;
+            text-shadow: 0 0 10px #10b981;
+            -webkit-text-fill-color: initial;
+        }
+
+        /* 📱 手機版專屬優化補丁 (更新) */
         @media (max-width: 767px) {
-        #page-matches > div { padding: 1.5rem !important; flex-direction: column !important; }
-        .team-name-display { font-size: 1.25rem !important; text-align: center !important; margin: 0.5rem 0; line-height: 1.2 !important; }
-        .score-display { font-size: 4rem !important; line-height: 1 !important; }
-        #page-bracket > div > div { display: flex !important; flex-direction: column !important; align-items: center !important; }
-        .final-gold, .sf-box, .third-box { max-width: 100% !important; padding: 1.5rem !important; margin-bottom: 1rem; }
-        .final-winner-style { font-size: 2rem !important; scale: 1 !important; }
-        nav.fixed { bottom: 20px !important; }
-    }
+            /* ... 原本的賽程卡片代碼 ... */
+
+            /* 2. PAGE 3 強制橫向並排 */
+            #page-bracket > div > h2 { 
+                display: block !important; /* 手機版也要顯示標題 */
+                font-size: 4rem !important; /* 縮小一點才不會擋住 */
+                margin-bottom: 1rem !important;
+            }
+            #page-bracket h2::after {
+                font-size: 0.8rem;
+                letter-spacing: 0.5em;
+            }
+            
+            #page-bracket > div > div {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 0px !important;
+                width: 100vw !important;
+                margin-left: -1rem !important;
+            }
+
+            .final-gold, .sf-box, .third-box {
+                min-width: 300px !important; 
+                transform: scale(0.32); /* 讓三顆球在手機上並排 */
+                margin: 0 -105px !important;
+                padding: 1rem !important;
+                flex-shrink: 0 !important;
+            }
+            /* ... 其他代碼 ... */
+        }
+
+            /* 四強與決賽方塊：使用縮放技術強行擠入螢幕 */
+            .final-gold, .sf-box, .third-box {
+                min-width: 320px !important; /* 維持內部內容寬度 */
+                transform: scale(0.35); /* 強力縮放以擠進手機螢幕 */
+                margin: 0 -105px !important; /* 負毛邊抵銷縮放後的空白 */
+                padding: 1.5rem !important;
+                flex-shrink: 0 !important;
+            }
+
+            /* 冠軍特效在手機橫排時需縮小 */
+            .final-winner-style {
+                font-size: 1.5rem !important; 
+                scale: 1 !important;
+            }
+
+            /* 導覽列位置 */
+            nav.fixed {
+                bottom: 20px !important;
+            }
+        }
     </style>
 </head>
 <body class="pb-24">
