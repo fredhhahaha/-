@@ -39,6 +39,7 @@
     <header class="bg-black py-8 text-center border-b-4 border-emerald-500 shadow-2xl">
         <h1 class="text-5xl md:text-7xl font-black italic text-white tracking-tighter uppercase">🍲 生態砂鍋盃 
         </h1> <div class="mt-3 text-[10px] text-slate-500 font-bold tracking-[0.5em]">ECO POT LIVE</div>
+    </header>
 
     <nav class="fixed bottom-4 left-0 right-0 md:sticky md:top-4 z-[100] max-w-lg mx-auto px-4">
         <div class="flex bg-slate-900/95 backdrop-blur rounded-2xl p-1.5 border border-white/20 shadow-2xl">
@@ -49,7 +50,7 @@
     </nav>
 
     <main class="w-full max-w-7xl mx-auto p-4 mt-6">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在同步資料庫...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 同步賽程中...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden space-y-24"></section>
@@ -87,7 +88,7 @@
             configs.forEach(cfg => {
                 const stats = {};
                 const groupMatches = allData.filter(m => m.type.includes(cfg.t) && m.id.startsWith(cfg.s) && !m.id.match(/四強|冠亞|決賽|季殿/));
-                const allFinished = groupMatches.every(m => m.status === "已結束");
+                const allFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
                 
                 groupMatches.forEach(m => {
                     const idA = m.id.split('-')[0]; const idB = m.id.split('-')[1];
@@ -101,16 +102,13 @@
                         }
                     });
                 });
-                groupWinners[cfg.k] = {
-                    list: Object.values(stats).sort((a,b) => (b.win-a.win) || (b.pts-a.pts)),
-                    allFinished: allFinished
-                };
+                groupWinners[cfg.k] = { list: Object.values(stats).sort((a,b) => (b.win-a.win) || (b.pts-a.pts)), allFinished: allFinished };
             });
         }
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // 1. PAGE 1: 加入自動填入功能
+        // 1. 修復 PAGE 1: 更加強健的四強結果偵測邏輯
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
@@ -118,14 +116,13 @@
                 const isFinal = m.id.includes('冠亞') || m.id.includes('決賽');
                 const isThird = m.id.includes('季殿');
                 
-                // 獲取勝負關係供 Page 1 使用
                 let displayA = m.teamA;
                 let displayB = m.teamB;
                 
                 if (isFinal || isThird) {
-                    const p = m.type[0]; // 抓取 '混' 或 '女'
-                    const s1 = allData.find(x => x.id.includes(p) && x.id.includes('四強1'));
-                    const s2 = allData.find(x => x.id.includes(p) && x.id.includes('四強2'));
+                    const catKey = m.type.substring(0,1); // '混' 或 '女'
+                    const s1 = allData.find(x => x.type.startsWith(m.type.substring(0,2)) && x.id.includes('四強1'));
+                    const s2 = allData.find(x => x.type.startsWith(m.type.substring(0,2)) && x.id.includes('四強2'));
                     
                     if (s1 && s1.status === "已結束") {
                         if (isFinal) displayA = s1.scoreA > s1.scoreB ? s1.teamA : s1.teamB;
@@ -156,7 +153,7 @@
             }).join('');
         }
 
-        // 2. PAGE 2: 只有在賽事全部結束後才反白淘汰組別
+        // PAGE 2 (不變動)
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
@@ -168,7 +165,6 @@
                 const groupData = groupWinners[cfg.k] || {list:[], allFinished:false};
                 const list = groupData.list;
                 const isAllFinished = groupData.allFinished;
-                
                 return `<div class="bg-slate-900 rounded-[2rem] p-6 border border-white/5 shadow-2xl">
                     <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-black text-emerald-400 italic">${cfg.title}</h3><span class="bg-emerald-900 text-emerald-200 px-3 py-1 rounded-lg text-xs font-black uppercase">${cfg.q}</span></div>
                     <table class="w-full text-left">
@@ -176,11 +172,8 @@
                         <tbody>
                         ${list.map((d,i) => {
                             const isQualified = i < cfg.top;
-                            // 關鍵邏輯：如果整組沒完，就不反白；如果完了，才反白沒晉級的
                             const opacityClass = (isAllFinished && !isQualified) ? 'opacity-20' : 'opacity-100';
-                            const rowHighlight = isQualified ? 'qualified-row' : '';
-                            
-                            return `<tr class="border-b border-white/5 ${opacityClass} ${rowHighlight}"><td class="py-4 font-black text-lg pl-4"><span class="text-emerald-500 mr-2">[${d.code}]</span>${d.name}</td><td class="text-right font-black text-emerald-500">${d.win}</td><td class="text-right pr-4 font-black text-slate-400">${d.pts}</td></tr>`;
+                            return `<tr class="border-b border-white/5 ${opacityClass} ${isQualified ? 'qualified-row' : ''}"><td class="py-4 font-black text-lg pl-4"><span class="text-emerald-500 mr-2">[${d.code}]</span>${d.name}</td><td class="text-right font-black text-emerald-500">${d.win}</td><td class="text-right pr-4 font-black text-slate-400">${d.pts}</td></tr>`;
                         }).join('')}
                         </tbody>
                     </table>
@@ -188,7 +181,6 @@
             }).join('');
         }
 
-        // PAGE 3 (不變動，保持原有自動機制)
         function buildSymmetricBox(m, label, boxType, curA, curB) {
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
             let fA = (m.teamA && !m.teamA.match(/TBD|勝方|敗方|名|組/)) ? m.teamA : curA;
@@ -205,17 +197,19 @@
             </div>`;
         }
 
+        // 2. 修復 PAGE 3: 決賽名單連動偵測
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
-                const p = cat[0];
                 const getWinnerName = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
                 let s1A = getWinnerName(cat+"A", 0, "A組1");
                 let s1B = (cat === "女雙") ? getWinnerName("女雙B", 1, "B組2") : getWinnerName("混雙B", 0, "B組1");
                 let s2A = (cat === "女雙") ? getWinnerName("女雙B", 0, "B組1") : getWinnerName("混雙A", 1, "A組2");
                 let s2B = (cat === "女雙") ? getWinnerName("女雙A", 1, "A組2") : getWinnerName("混雙C", 0, "C組1");
-                const getM = (tag) => allData.find(m => m.id.includes(p) && m.id.includes(tag)) || {id:cat+tag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定",ref:"待定"};
+                
+                const getM = (tag) => allData.find(m => m.type.startsWith(cat) && m.id.includes(tag)) || {id:cat+tag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定",ref:"待定"};
                 const s1 = getM("四強1"), s2 = getM("四強2"), f = getM("冠亞"), t = getM("季殿");
+
                 let w1 = "SF1 勝方", l1 = "SF1 敗方", w2 = "SF2 勝方", l2 = "SF2 敗方";
                 if(s1.status === "已結束") { 
                     w1 = s1.scoreA > s1.scoreB ? (s1.teamA.match(/TBD|組|名/) ? s1A : s1.teamA) : (s1.teamB.match(/TBD|組|名/) ? s1B : s1.teamB); 
