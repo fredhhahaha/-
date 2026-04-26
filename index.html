@@ -2,66 +2,65 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>生態砂鍋盃 - 官方即時看板</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生態砂鍋盃 - LIVE 看板</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #020617; color: #f8fafc; }
         
-        /* 響應式優化：電腦版兩欄，手機版一欄 */
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
-        
-        /* 導航列毛玻璃效果 */
-        nav { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        
         .tab-active { background-color: #10b981 !important; color: white !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-        
-        /* 決賽霓虹呼吸燈 */
-        @keyframes neon-pulse { 
-            0%, 100% { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); } 
-            50% { border-color: #ef4444; box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); } 
-        }
-        .final-neon { animation: neon-pulse 2s infinite; border-width: 3px !important; }
-
-        /* 隱藏捲動條但保留功能 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 晉級圖線條 */
-        .bracket-line { height: 2px; background: linear-gradient(90deg, #1e293b, #fbbf24, #1e293b); background-size: 200% 100%; animation: moveLine 2s linear infinite; }
-        @keyframes moveLine { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* 響應式：手機版與電腦版視覺分流 */
+        @media (max-width: 768px) {
+            .desktop-banner { display: none !important; }
+            .mobile-card { display: block !important; }
+        }
+        @media (min-width: 769px) {
+            .desktop-banner { display: block !important; }
+            .mobile-card { display: none !important; }
+        }
+
+        /* 經典橫幅背景特效 */
+        .match-banner {
+            background: linear-gradient(90deg, rgba(15,23,42,1) 0%, rgba(30,41,59,0.8) 50%, rgba(15,23,42,1) 100%);
+            transition: all 0.3s ease;
+        }
+        .match-banner:hover { transform: scale(1.01); border-color: rgba(16, 185, 129, 0.3); }
+
+        /* 霓虹特效 */
+        @keyframes neon-glow { 0%, 100% { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); } 50% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); } }
+        .final-neon { animation: neon-glow 2s infinite; border-width: 3px !important; }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="bg-slate-950 py-10 md:py-16 text-center border-b border-white/5">
-        <h1 class="text-4xl md:text-6xl font-black italic text-emerald-400 tracking-tighter">🍲 砂鍋盃 LIVE</h1>
-        <p class="text-[10px] md:text-xs text-slate-500 mt-3 tracking-[0.4em] font-bold uppercase">ECO POT LIVE</p>
+    <header class="bg-slate-950 py-12 text-center border-b border-white/5 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        <h1 class="text-5xl md:text-6xl font-black italic text-emerald-400 relative z-10 tracking-tighter">🍲 砂鍋盃 LIVE</h1>
+        <div class="inline-block mt-4 px-4 py-1 bg-emerald-500/10 rounded-full relative z-10 border border-emerald-500/20">
+            <p class="text-xs text-emerald-500 font-bold tracking-[0.5em] uppercase">ECO POT LIVE</p>
+        </div>
     </header>
 
     <nav class="max-w-xl mx-auto px-4 -mt-7 sticky top-4 z-50">
-        <div class="flex bg-slate-900/80 rounded-2xl p-1.5 border border-white/10 shadow-2xl">
-            <button onclick="showPage('matches')" id="btn-matches" class="flex-1 py-3 md:py-4 text-sm font-black rounded-xl tab-active transition-all">賽程看板</button>
-            <button onclick="showPage('standing')" id="btn-standing" class="flex-1 py-3 md:py-4 text-sm font-black rounded-xl text-slate-400 transition-all">分組積分</button>
-            <button onclick="showPage('bracket')" id="btn-bracket" class="flex-1 py-3 md:py-4 text-sm font-black rounded-xl text-slate-400 transition-all">晉級之路</button>
+        <div class="flex bg-slate-900/90 backdrop-blur-md rounded-2xl p-1.5 border border-white/10 shadow-2xl">
+            <button onclick="showPage('matches')" id="btn-matches" class="flex-1 py-4 text-sm font-black rounded-xl tab-active transition-all">賽程看板</button>
+            <button onclick="showPage('standing')" id="btn-standing" class="flex-1 py-4 text-sm font-black rounded-xl text-slate-400 transition-all">分組積分</button>
+            <button onclick="showPage('bracket')" id="btn-bracket" class="flex-1 py-4 text-sm font-black rounded-xl text-slate-400 transition-all">晉級之路</button>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto p-4 mt-8">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-lg">📡 數據同步中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-bold animate-pulse text-xl">📡 正在從雲端同步即時比分...</div>
         
-        <section id="page-matches" class="hidden grid-container"></section>
+        <section id="page-matches" class="hidden space-y-4"></section>
         
-        <section id="page-standing" class="hidden grid-container"></section>
+        <section id="page-standing" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8"></section>
         
-        <section id="page-bracket" class="hidden">
-            <div class="text-center mb-6 md:hidden">
-                <span class="text-[10px] bg-slate-800 text-slate-400 px-3 py-1 rounded-full">↔ 左右滑動查看完整圖表</span>
-            </div>
-            <div class="overflow-x-auto no-scrollbar bg-slate-950/40 rounded-[2rem] border border-white/5 p-6">
-                <div id="bracket-flow" class="min-w-[1000px] py-10 space-y-32"></div>
-            </div>
+        <section id="page-bracket" class="hidden overflow-x-auto no-scrollbar rounded-3xl p-6 md:p-12 bg-slate-950/40 border border-white/5 shadow-inner">
+            <div id="bracket-flow" class="min-w-[1100px] space-y-32"></div>
         </section>
     </main>
 
@@ -69,7 +68,7 @@
         const sheetId = '10ywzReTqHAeqN1YzQYZfBhebd1-59Yc79qz26y6O51o';
         const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
         let allData = [];
-        let groupWinners = {}; 
+        let groupWinners = {};
 
         async function loadData() {
             try {
@@ -100,25 +99,39 @@
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
                 const isElite = m.type.match(/四強|決賽|SF|Final/i);
-                return `<div class="${isElite ? 'bg-slate-800/80 border-amber-500/30' : 'bg-slate-900 border-white/5'} p-6 rounded-2xl border shadow-xl relative overflow-hidden">
-                    ${isLive ? '<div class="absolute top-0 right-0 bg-orange-500 text-[8px] font-black px-2 py-1 rounded-bl-lg animate-pulse text-white">LIVE</div>' : ''}
-                    <div class="text-[10px] font-bold text-slate-500 mb-4 flex justify-between uppercase">
-                        <span>${m.id} · ${m.type}</span>
-                        <span>${m.court}</span>
+                
+                return `
+                <div class="desktop-banner match-banner p-6 rounded-3xl border border-white/5 relative overflow-hidden ${isLive ? 'ring-1 ring-emerald-500' : ''}">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="w-1/3 text-right">
+                            <div class="text-[10px] text-slate-500 font-bold mb-1">${m.id} / ${m.type}</div>
+                            <div class="text-2xl font-black text-white truncate">${m.teamA}</div>
+                        </div>
+                        <div class="flex flex-col items-center px-10">
+                            <div class="text-4xl font-black italic text-emerald-400 tabular-nums">${m.scoreA} : ${m.scoreB}</div>
+                            <div class="text-[10px] font-bold mt-2 px-3 py-0.5 rounded-full ${isLive?'bg-orange-500 text-white animate-pulse':'bg-slate-800 text-slate-500'}">${m.status}</div>
+                        </div>
+                        <div class="w-1/3 text-left">
+                            <div class="text-[10px] text-slate-500 font-bold mb-1">${m.court} / ${m.time}</div>
+                            <div class="text-2xl font-black text-white truncate">${m.teamB}</div>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex-1 text-center font-bold text-lg text-white truncate">${m.teamA}</div>
-                        <div class="text-3xl font-black italic text-emerald-400 tabular-nums">${m.scoreA}:${m.scoreB}</div>
-                        <div class="flex-1 text-center font-bold text-lg text-white truncate">${m.teamB}</div>
+                </div>
+
+                <div class="mobile-card p-5 rounded-2xl bg-slate-900 border border-white/5 shadow-lg ${isElite?'bg-slate-800 border-amber-500/30':''}">
+                    <div class="flex justify-between text-[9px] font-bold text-slate-500 mb-3 uppercase"><span>${m.id} | ${m.type}</span><span>${m.court}</span></div>
+                    <div class="flex items-center justify-between font-black text-white">
+                        <span class="flex-1 truncate">${m.teamA}</span>
+                        <span class="px-4 text-2xl italic text-emerald-400 tabular-nums">${m.scoreA}:${m.scoreB}</span>
+                        <span class="flex-1 text-right truncate">${m.teamB}</span>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] text-slate-500 font-bold">
-                        <span>裁判: ${m.ref}</span>
-                        <span>${m.time}</span>
-                    </div>
-                </div>`;
+                    <div class="mt-3 text-[9px] text-slate-600 font-bold flex justify-between"><span>裁判: ${m.ref}</span><span class="${isLive?'text-orange-500 animate-pulse':''}">${m.status}</span></div>
+                </div>
+                `;
             }).join('');
         }
 
+        // 積分榜與晉級圖邏輯維持最新優化版
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
@@ -134,7 +147,6 @@
                 const stats = {};
                 const groupMatches = allData.filter(m => m.type.includes(cfg.type) && m.id.startsWith(cfg.sub) && !m.type.match(/四強|決賽|季殿/));
                 const isAllFinished = groupMatches.length > 0 && groupMatches.every(m => m.status === "已結束");
-
                 groupMatches.forEach(m => {
                     const codes = m.id.split('-');
                     if(m.teamA && m.teamA !== 'TBD' && !stats[m.teamA]) stats[m.teamA] = { name: m.teamA, win: 0, score: 0, code: codes[0] || cfg.sub };
@@ -144,35 +156,20 @@
                         if(m.scoreA > m.scoreB) stats[m.teamA].win++; else if(m.scoreB > m.scoreA) stats[m.teamB].win++;
                     }
                 });
-
                 const sorted = Object.values(stats).sort((a, b) => (b.win !== a.win) ? (b.win - a.win) : (b.score - a.score));
                 groupWinners[cfg.type + cfg.sub] = sorted.map(d => d.name);
                 if (sorted.length === 0) return "";
 
                 return `<div class="bg-slate-900 rounded-3xl p-6 border border-white/5">
-                    <div class="flex justify-between items-center mb-5">
-                        <span class="text-emerald-400 font-black italic text-lg tracking-tighter">🏆 ${cfg.title}</span>
-                        <span class="text-[10px] bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-full font-bold uppercase">晉級名額: ${cfg.top}</span>
-                    </div>
-                    <div class="space-y-3">
+                    <div class="flex justify-between items-center mb-5"><span class="text-emerald-400 font-black italic">🏆 ${cfg.title}</span><span class="text-[10px] text-slate-500 uppercase">晉級: ${cfg.top}</span></div>
+                    <table class="w-full text-sm desktop-banner">
                         ${sorted.map((d, i) => {
-                            let medal = "";
-                            if (isAllFinished && i < cfg.top) {
-                                if (cfg.title === "男雙") medal = i === 0 ? "🥇 冠軍" : "🥈 亞軍";
-                                else medal = i === 0 ? "🏆 第 1" : "🥈 第 2";
-                            }
-                            return `<div class="flex items-center justify-between p-3 rounded-xl ${i < cfg.top ? 'bg-emerald-500/5 border border-emerald-500/10' : 'bg-slate-800/30'}">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs font-mono text-slate-500">${d.code}</span>
-                                    <span class="font-bold text-sm ${i < cfg.top ? 'text-white' : 'text-slate-400'} truncate w-32 md:w-40">${d.name}</span>
-                                    <span class="text-[10px] text-amber-500 font-black whitespace-nowrap">${medal}</span>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-emerald-400 font-black text-sm">${d.win} W</div>
-                                    <div class="text-[10px] text-slate-500">${d.score} pts</div>
-                                </div>
-                            </div>`;
+                            let medal = (isAllFinished && i < cfg.top) ? (i === 0 ? "🥇" : "🥈") : "";
+                            return `<tr class="border-b border-white/5 last:border-0"><td class="py-4 font-bold"><span class="text-slate-500 mr-2 text-xs font-mono">${d.code}</span>${d.name} ${medal}</td><td class="py-4 text-right font-black text-emerald-400">${d.win} W</td><td class="py-4 text-right text-slate-500 italic">${d.score} pts</td></tr>`;
                         }).join('')}
+                    </table>
+                    <div class="mobile-card space-y-2">
+                        ${sorted.map((d, i) => `<div class="bg-slate-800/40 p-3 rounded-xl flex justify-between items-center text-xs border border-white/5"><span class="font-bold text-white">${d.name}</span><span class="font-black text-emerald-400">${d.win}W / ${d.score}P</span></div>`).join('')}
                     </div>
                 </div>`;
             }).join('');
@@ -180,15 +177,14 @@
 
         function buildNode(m, label, type, curA, curB) {
             const isFinal = type === "final";
-            const fA = /組|第一|第二|勝者/.test(m.teamA) || m.teamA === "TBD" ? curA : m.teamA;
-            const fB = /組|第一|第二|勝者/.test(m.teamB) || m.teamB === "TBD" ? curB : m.teamB;
-            return `<div class="bracket-node rounded-3xl p-6 border-2 ${isFinal?'final-neon bg-slate-900':'border-white/5 bg-slate-900/50'}">
-                <div class="text-[10px] font-black mb-4 text-slate-500 flex justify-between uppercase tracking-widest">
-                    <span>${label}</span><span class="${m.status === '進行中' ? 'text-orange-500 animate-pulse' : ''}">${m.status}</span>
-                </div>
-                <div class="space-y-4 font-black text-lg">
-                    <div class="flex justify-between items-center text-white"><span class="truncate w-40">${fA}</span><span class="text-emerald-400">${m.scoreA}</span></div>
-                    <div class="flex justify-between items-center text-white"><span class="truncate w-40">${fB}</span><span class="text-emerald-400">${m.scoreB}</span></div>
+            const isOrange = type === "orange";
+            const fA = /組|第一|第二|勝者|敗者/.test(m.teamA) || m.teamA === "TBD" ? curA : m.teamA;
+            const fB = /組|第一|第二|勝者|敗者/.test(m.teamB) || m.teamB === "TBD" ? curB : m.teamB;
+            return `<div class="bracket-node rounded-3xl p-6 border-2 ${isFinal?'final-neon bg-slate-900':'border-white/5 bg-slate-900/50'} ${isOrange?'border-orange-500/40':''}">
+                <div class="text-[10px] font-black mb-4 flex justify-between uppercase"><span class="${isOrange?'text-orange-400':'text-slate-500'}">${label}</span><span>${m.status}</span></div>
+                <div class="space-y-4 font-black text-xl text-white">
+                    <div class="flex justify-between items-center"><span class="truncate w-44">${fA}</span><span class="text-emerald-400">${m.scoreA}</span></div>
+                    <div class="flex justify-between items-center"><span class="truncate w-44">${fB}</span><span class="text-emerald-400">${m.scoreB}</span></div>
                 </div>
             </div>`;
         }
@@ -207,18 +203,16 @@
                 const s1 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("1")) || {scoreA:0, scoreB:0, status:"待賽"};
                 const s2 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("2")) || {scoreA:0, scoreB:0, status:"待賽"};
                 const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/i) && !m.type.includes("季殿")) || {scoreA:0, scoreB:0, status:"待賽"};
+                const t = allData.find(m => m.type.includes(cat) && m.type.match(/季殿/)) || {scoreA:0, scoreB:0, status:"待賽"};
+                let l1 = s1.status === "已結束" ? (s1.scoreA > s1.scoreB ? s1.teamB : s1.teamA) : "敗者 1";
+                let l2 = s2.status === "已結束" ? (s2.scoreA > s2.scoreB ? s2.teamB : s2.teamA) : "敗者 2";
 
-                flow.innerHTML += `<div class="p-8 rounded-[3rem] bg-slate-900/30 border border-white/5 relative overflow-hidden">
-                    <h3 class="text-center font-black text-2xl md:text-3xl text-white mb-16 italic uppercase tracking-widest">${cat} Finals Road</h3>
-                    <div class="flex items-center justify-between gap-6">
-                        <div class="w-80 space-y-12">
-                            ${buildNode(s1, "Semi-Final 1", "normal", s1A, s1B)}
-                            ${buildNode(s2, "Semi-Final 2", "normal", s2A, s2B)}
-                        </div>
-                        <div class="bracket-line flex-1"></div>
-                        <div class="w-96">
-                            ${buildNode(f, "🏆 Grand Final", "final", "勝者 1", "勝者 2")}
-                        </div>
+                flow.innerHTML += `<div class="p-10 rounded-[3rem] bg-slate-900/30 border border-white/5">
+                    <h3 class="text-center font-black text-2xl text-white mb-16 italic uppercase tracking-tighter">${cat} Championship Flow</h3>
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="w-80 space-y-12">${buildNode(s1, "Semi-Final 1", "normal", s1A, s1B)}${buildNode(s2, "Semi-Final 2", "normal", s2A, s2B)}</div>
+                        <div class="h-1 flex-1 bg-slate-800"></div>
+                        <div class="w-96 space-y-10">${buildNode(f, "🏆 Final Match", "final", "勝者 1", "勝者 2")}${buildNode(t, "🏅 3rd Place Match", "orange", l1, l2)}</div>
                     </div>
                 </div>`;
             });
@@ -231,7 +225,7 @@
             });
             document.getElementById(`page-${p}`).classList.remove('hidden');
             document.getElementById(`btn-${p}`).classList.add('tab-active');
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            window.scrollTo(0,0);
         }
 
         loadData(); setInterval(loadData, 15000);
