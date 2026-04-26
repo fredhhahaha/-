@@ -183,21 +183,46 @@
 
         function buildSymmetricBox(m, label, boxType, defaultA, defaultB) {
             const isF = boxType === "final", isT = boxType === "third", isLive = m.status === '進行中', isFinished = m.status === '已結束';
+            
             let fA = (m.teamA && !m.teamA.match(/TBD|勝方|敗方|名|組/)) ? m.teamA : defaultA;
             let fB = (m.teamB && !m.teamB.match(/TBD|勝方|敗方|名|組/)) ? m.teamB : defaultB;
-            let tagA = (isFinished && m.scoreA > m.scoreB) ? (isF ? " 🏆" : (isT ? " 🥉" : "")) : "";
-            let tagB = (isFinished && m.scoreB > m.scoreA) ? (isF ? " 🏆" : (isT ? " 🥉" : "")) : "";
+            
+            // 冠亞季殿名號邏輯
+            let tagA = "", tagB = "";
+            if (isFinished) {
+                if (m.scoreA > m.scoreB) {
+                    tagA = isF ? " 🏆" : (isT ? " 🥉" : "");
+                    tagB = isF ? " 🎖️" : ""; // 決賽輸家 = 亞軍 🎖️
+                } else if (m.scoreB > m.scoreA) {
+                    tagB = isF ? " 🏆" : (isT ? " 🥉" : "");
+                    tagA = isF ? " 🎖️" : ""; // 決賽輸家 = 亞軍 🎖️
+                }
+            }
+            
+            // 冠軍強化樣式 (只針對冠軍)
+            const winStyle = "text-5xl md:text-6xl text-yellow-300 drop-shadow-[0_0_15px_rgba(253,224,71,0.8)] scale-110 z-20";
+            const styleA = (isF && isFinished && m.scoreA > m.scoreB) ? winStyle : "text-xl md:text-2xl";
+            const styleB = (isF && isFinished && m.scoreB > m.scoreA) ? winStyle : "text-xl md:text-2xl";
+
             let liveClass = isLive ? (isF ? "status-live-final" : (isT ? "status-live-third" : "status-live")) : "";
             let styleClass = isF ? "final-gold" : (isT ? "third-box" : "sf-box");
+            
             return `<div class="w-full max-w-[400px] rounded-[2.5rem] p-8 border-4 shadow-2xl transition-all ${styleClass} ${liveClass}">
                 <div class="flex justify-between items-center mb-4"><span class="text-[10px] font-black bg-black/20 px-2 py-1 rounded uppercase">${label}</span><div class="flex gap-1"><span class="info-tag-court">${m.court}</span></div></div>
-                <div class="space-y-6"><div class="flex justify-between items-start gap-4"><div class="text-xl md:text-2xl font-black break-words flex-1 uppercase">${fA}${tagA}</div><div class="text-4xl font-black italic">${m.scoreA}</div></div>
-                <div class="flex justify-between items-start gap-4"><div class="text-xl md:text-2xl font-black break-words flex-1 uppercase">${fB}${tagB}</div><div class="text-4xl font-black italic">${m.scoreB}</div></div></div>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center gap-4">
+                        <div class="font-black break-words flex-1 uppercase transition-all duration-500 ${styleA}">${fA}${tagA}</div>
+                        <div class="text-4xl font-black italic">${m.scoreA}</div>
+                    </div>
+                    <div class="flex justify-between items-center gap-4">
+                        <div class="font-black break-words flex-1 uppercase transition-all duration-500 ${styleB}">${fB}${tagB}</div>
+                        <div class="text-4xl font-black italic">${m.scoreB}</div>
+                    </div>
+                </div>
                 <div class="mt-4 text-center border-t border-black/10 pt-2 text-[10px] font-black opacity-60 uppercase">${m.status} | ${m.id}</div>
             </div>`;
         }
 
-        // 修改點：移除外部重複標題，只保留對戰盒內的標籤
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
@@ -212,18 +237,12 @@
 
                 container.innerHTML += `<div class="flex flex-col items-center w-full px-4"><h2 class="text-6xl md:text-8xl font-black italic mb-12 opacity-10 uppercase tracking-tighter">${cat} FINALS</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center justify-center w-full max-w-6xl">
-                        <div class="flex flex-col items-center gap-4 w-full">
-                            ${buildSymmetricBox(s1, `準決賽 1`, "sf", s1A, s1B)}
-                        </div>
-                        
+                        <div class="flex flex-col items-center gap-4 w-full">${buildSymmetricBox(s1, `準決賽 1`, "sf", s1A, s1B)}</div>
                         <div class="flex flex-col gap-12 w-full items-center py-10 lg:py-0 border-y lg:border-y-0 lg:border-x border-white/5">
                             ${buildSymmetricBox(f, `👑 冠亞賽`, "final", "SF1 勝方", "SF2 勝方")}
                             ${buildSymmetricBox(t, `🥉 季殿賽`, "third", "SF1 敗方", "SF2 敗方")}
                         </div>
-
-                        <div class="flex flex-col items-center gap-4 w-full">
-                            ${buildSymmetricBox(s2, `準決賽 2`, "sf", s2A, s2B)}
-                        </div>
+                        <div class="flex flex-col items-center gap-4 w-full">${buildSymmetricBox(s2, `準決賽 2`, "sf", s2A, s2B)}</div>
                     </div></div>`;
             });
         }
