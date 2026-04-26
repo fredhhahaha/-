@@ -50,7 +50,7 @@
     </nav>
 
     <main class="w-full max-w-7xl mx-auto p-4 mt-6">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 同步賽程中...</div>
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 系統正在同步最新的四強戰果...</div>
         <section id="page-matches" class="hidden space-y-6"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8"></section>
         <section id="page-bracket" class="hidden space-y-24"></section>
@@ -106,9 +106,19 @@
             });
         }
 
+        // 新增的萬用連動判定工具
+        function getMatchResult(typeTag, idTag) {
+            const m = allData.find(x => x.type.includes(typeTag) && x.id.includes(idTag));
+            if (!m || m.status !== "已結束") return null;
+            return {
+                winner: m.scoreA > m.scoreB ? m.teamA : m.teamB,
+                loser: m.scoreA > m.scoreB ? m.teamB : m.teamA
+            };
+        }
+
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // 1. 修復 PAGE 1: 更加強健的四強結果偵測邏輯
+        // 1. PAGE 1 修正：確保四強結果能正確顯示在冠亞/季殿賽程中
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
@@ -120,17 +130,17 @@
                 let displayB = m.teamB;
                 
                 if (isFinal || isThird) {
-                    const catKey = m.type.substring(0,1); // '混' 或 '女'
-                    const s1 = allData.find(x => x.type.startsWith(m.type.substring(0,2)) && x.id.includes('四強1'));
-                    const s2 = allData.find(x => x.type.startsWith(m.type.substring(0,2)) && x.id.includes('四強2'));
+                    const typeTag = m.type.substring(0,2); 
+                    const res1 = getMatchResult(typeTag, "四強1");
+                    const res2 = getMatchResult(typeTag, "四強2");
                     
-                    if (s1 && s1.status === "已結束") {
-                        if (isFinal) displayA = s1.scoreA > s1.scoreB ? s1.teamA : s1.teamB;
-                        if (isThird) displayA = s1.scoreA > s1.scoreB ? s1.teamB : s1.teamA;
+                    if (res1) {
+                        if (isFinal) displayA = res1.winner;
+                        if (isThird) displayA = res1.loser;
                     }
-                    if (s2 && s2.status === "已結束") {
-                        if (isFinal) displayB = s2.scoreA > s2.scoreB ? s2.teamA : s2.teamB;
-                        if (isThird) displayB = s2.scoreA > s2.scoreB ? s2.teamB : s2.teamA;
+                    if (res2) {
+                        if (isFinal) displayB = res2.winner;
+                        if (isThird) displayB = res2.loser;
                     }
                 }
 
@@ -153,7 +163,7 @@
             }).join('');
         }
 
-        // PAGE 2 (不變動)
+        // PAGE 2 保持不變
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [
@@ -197,28 +207,28 @@
             </div>`;
         }
 
-        // 2. 修復 PAGE 3: 決賽名單連動偵測
+        // 2. PAGE 3 修正：確保冠軍/亞軍賽顯示四強賽的勝負結果
         function renderBracketFlow() {
             const container = document.getElementById('page-bracket'); container.innerHTML = "";
             ["女雙", "混雙"].forEach(cat => {
+                const typeTag = cat + "雙";
                 const getWinnerName = (k, idx, def) => (groupWinners[k] && groupWinners[k].list[idx]) ? groupWinners[k].list[idx].name : def;
+                
                 let s1A = getWinnerName(cat+"A", 0, "A組1");
                 let s1B = (cat === "女雙") ? getWinnerName("女雙B", 1, "B組2") : getWinnerName("混雙B", 0, "B組1");
                 let s2A = (cat === "女雙") ? getWinnerName("女雙B", 0, "B組1") : getWinnerName("混雙A", 1, "A組2");
                 let s2B = (cat === "女雙") ? getWinnerName("女雙A", 1, "A組2") : getWinnerName("混雙C", 0, "C組1");
                 
-                const getM = (tag) => allData.find(m => m.type.startsWith(cat) && m.id.includes(tag)) || {id:cat+tag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定",ref:"待定"};
+                const getM = (idTag) => allData.find(m => m.type.includes(cat) && m.id.includes(idTag)) || {id:cat+idTag,teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽",court:"待定",ref:"待定"};
                 const s1 = getM("四強1"), s2 = getM("四強2"), f = getM("冠亞"), t = getM("季殿");
 
                 let w1 = "SF1 勝方", l1 = "SF1 敗方", w2 = "SF2 勝方", l2 = "SF2 敗方";
-                if(s1.status === "已結束") { 
-                    w1 = s1.scoreA > s1.scoreB ? (s1.teamA.match(/TBD|組|名/) ? s1A : s1.teamA) : (s1.teamB.match(/TBD|組|名/) ? s1B : s1.teamB); 
-                    l1 = s1.scoreA > s1.scoreB ? (s1.teamB.match(/TBD|組|名/) ? s1B : s1.teamB) : (s1.teamA.match(/TBD|組|名/) ? s1A : s1.teamA); 
-                }
-                if(s2.status === "已結束") { 
-                    w2 = s2.scoreA > s2.scoreB ? (s2.teamA.match(/TBD|組|名/) ? s2A : s2.teamA) : (s2.teamB.match(/TBD|組|名/) ? s2B : s2.teamB); 
-                    l2 = s2.scoreA > s2.scoreB ? (s2.teamB.match(/TBD|組|名/) ? s2B : s2.teamB) : (s2.teamA.match(/TBD|組|名/) ? s2A : s2.teamA); 
-                }
+                const res1 = getMatchResult(typeTag, "四強1");
+                const res2 = getMatchResult(typeTag, "四強2");
+
+                if(res1) { w1 = res1.winner; l1 = res1.loser; }
+                if(res2) { w2 = res2.winner; l2 = res2.loser; }
+
                 container.innerHTML += `<div class="flex flex-col items-center w-full"><h2 class="text-6xl md:text-8xl font-black italic mb-12 opacity-10 uppercase tracking-tighter">${cat} FINALS</h2>
                     <div class="flex flex-col lg:flex-row items-center justify-center gap-10 w-full px-4">
                         <div class="w-full flex justify-center">${buildSymmetricBox(s1, `${cat} 準決賽 1`, "sf", s1A, s1B)}</div>
