@@ -45,6 +45,51 @@
         /* 列表文字清晰度優化 */
         .team-name-display { color: #ffffff; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         .score-display { color: #34d399; text-shadow: 0 0 20px rgba(52, 211, 153, 0.5); }
+        @media (max-width: 767px) {
+        /* 1. 調整賽程卡片：讓隊名跟比分不會擠成一團 */
+        #page-matches > div {
+            padding: 1.5rem !important; /* 縮小內邊距，騰出空間 */
+            flex-direction: column !important; /* 強制垂直排列 */
+        }
+        
+        /* 2. 讓隊名在手機上自動縮小一點，避免長隊名強行換行 */
+        .team-name-display {
+            font-size: 1.25rem !important; /* 調降手機隊名字體 */
+            text-align: center !important;
+            margin: 0.5rem 0;
+            line-height: 1.2 !important;
+        }
+
+        /* 3. 縮小巨大的比分，在大螢幕很帥但在手機會擋路 */
+        .score-display {
+            font-size: 4rem !important; /* 調整手機比分大小 */
+            line-height: 1 !important;
+        }
+
+        /* 4. 解決晉級之路（Page 3）在手機太寬的問題 */
+        #page-bracket > div > div {
+            display: flex !important;
+            flex-direction: column !important; /* 讓準決賽、冠亞賽垂直排下來 */
+            align-items: center !important;
+        }
+        
+        .final-gold, .sf-box, .third-box {
+            max-width: 100% !important; /* 讓方塊寬度自動適應手機邊界 */
+            padding: 1.5rem !important;
+            margin-bottom: 1rem;
+        }
+
+        /* 5. 調整 Page 3 冠軍字體，避免在手機版大到爆出格子 */
+        .final-winner-style {
+            font-size: 2rem !important; 
+            scale: 1 !important; /* 手機不需要縮放效果，容易擋住旁邊文字 */
+        }
+        
+        /* 6. 讓導覽列在手機版高一點，避免擋到手機底部的操作手勢 */
+        nav.fixed {
+            bottom: 20px !important;
+        }
+    }
     </style>
 </head>
 <body class="pb-24">
