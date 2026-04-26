@@ -12,30 +12,29 @@
         .tab-active { background-color: #10b981 !important; color: white !important; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 進行中：標準紅光震波 (預賽用) */
-        @keyframes shockwave {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
-            100% { box-shadow: 0 0 0 40px rgba(239, 68, 68, 0); }
-        }
-        
-        /* 進行中：雷擊閃爍 (決賽用) */
-        @keyframes thunder-glow {
-            0%, 100% { border-color: #ef4444; box-shadow: 0 0 20px #ef4444; }
-            50% { border-color: #fef3c7; box-shadow: 0 0 50px #fbbf24, inset 0 0 20px #ffffff; }
-        }
-
-        .status-live-normal { animation: shockwave 1.2s infinite cubic-bezier(0.66, 0, 0, 1); border: 4px solid #ef4444 !important; }
-        .status-live-critical { animation: thunder-glow 0.2s infinite; border: 6px solid #fbbf24 !important; }
-
-        /* 決賽黃金流體 */
+        /* 特效區 */
+        @keyframes shockwave { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); } 100% { box-shadow: 0 0 0 40px rgba(239, 68, 68, 0); } }
+        @keyframes thunder-glow { 0%, 100% { border-color: #ef4444; box-shadow: 0 0 20px #ef4444; } 50% { border-color: #ffffff; box-shadow: 0 0 40px #fbbf24; } }
         @keyframes gold-flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .status-live-normal { animation: shockwave 1.2s infinite; border: 4px solid #ef4444 !important; }
+        .status-live-critical { animation: thunder-glow 0.2s infinite; border: 6px solid #fbbf24 !important; }
         .final-gold { 
             background: linear-gradient(-45deg, #f59e0b, #fef3c7, #d97706, #fbbf24) !important; 
             background-size: 400% 400% !important; animation: gold-flow 3s ease infinite !important; 
             border: 4px solid #ffffff !important; 
         }
 
-        /* Page 3 結構補償 */
+        /* 晉級反白邏輯 */
+        .eliminated { opacity: 0.25; filter: grayscale(1) blur(0.5px); }
+        .qualified { border-left: 8px solid #10b981; background: rgba(16, 185, 129, 0.05); }
+
+        /* Page 3 文字清晰度優化 */
+        .text-overlay { background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 6px; }
+        .final-gold .text-overlay { background: rgba(255,255,255,0.2); color: #451a03 !important; }
+        .final-gold span, .final-gold div { color: #451a03 !important; }
+
+        /* Page 3 結構 */
         .bracket-scroll-area { width: 100%; overflow-x: auto; padding: 60px 0; display: flex; justify-content: flex-start; }
         @media (min-width: 1500px) { .bracket-scroll-area { justify-content: center; } }
         .bracket-zoom-layer { transform: scale(0.85); transform-origin: center top; padding: 0 150px; min-width: max-content; display: flex; flex-direction: column; align-items: center; }
@@ -56,10 +55,9 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 mt-8 md:mt-12">
-        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在載入智慧賽程數據...</div>
-        
-        <section id="page-matches" class="hidden space-y-6 md:space-y-10"></section>
+    <main class="max-w-7xl mx-auto p-4 mt-8">
+        <div id="loading-msg" class="text-center py-20 text-emerald-500 font-black text-2xl animate-pulse">📡 正在同步結算名單...</div>
+        <section id="page-matches" class="hidden space-y-8"></section>
         <section id="page-standing" class="hidden grid grid-cols-1 md:grid-cols-2 gap-10"></section>
         <section id="page-bracket" class="hidden">
             <div class="bracket-scroll-area no-scrollbar">
@@ -92,40 +90,30 @@
 
         function renderAll() { renderMatches(); renderStandings(); renderBracketFlow(); }
 
-        // --- PAGE 1: 進行中比賽特效強化 ---
         function renderMatches() {
             const container = document.getElementById('page-matches');
             container.innerHTML = allData.map(m => {
                 const isLive = m.status === '進行中';
                 const isCritical = m.type.match(/四強|決賽|季殿/i);
-                let liveClass = "";
-                if(isLive) liveClass = isCritical ? "status-live-critical" : "status-live-normal";
-                
+                let liveClass = isLive ? (isCritical ? "status-live-critical shadow-[0_0_60px_rgba(251,191,36,0.4)]" : "status-live-normal shadow-[0_0_40px_rgba(239,68,68,0.3)]") : "border-white/5";
                 let theme = 'bg-emerald-600'; if(m.type.includes('女雙')) theme = 'bg-purple-600'; if(m.type.includes('混雙')) theme = 'bg-orange-600';
-                
-                return `<div class="relative bg-slate-900 p-8 md:p-12 rounded-[3rem] flex flex-row items-center border-l-[15px] ${liveClass} ${!isLive ? 'border-white/5' : ''}">
+                return `<div class="relative bg-slate-900 p-8 md:p-12 rounded-[3rem] flex flex-row items-center border-l-[15px] ${liveClass}">
                     <div class="absolute -top-3 left-10 ${theme} text-white px-6 py-1 rounded-full text-[10px] md:text-sm font-black uppercase z-10 shadow-xl">${m.type}</div>
-                    
                     <div class="flex-1 text-right text-2xl md:text-5xl font-black leading-tight break-words pr-4 md:pr-10">${m.teamA}</div>
-                    
                     <div class="flex flex-col items-center justify-center min-w-[120px] md:min-w-[300px]">
                         <div class="text-[10px] md:text-xs font-black bg-white/10 text-slate-400 px-4 py-1 rounded-full mb-4">MATCH ${m.id}</div>
-                        <div class="text-4xl md:text-9xl font-black italic tabular-nums leading-none ${isLive && isCritical ? 'text-yellow-400' : ''}">${m.scoreA}:${m.scoreB}</div>
-                        <div class="mt-6 flex flex-col items-center gap-2 text-[10px] md:text-sm font-bold text-slate-500">
-                            <div class="flex items-center gap-4">
-                                <span>🕒 ${m.time}</span><span>📍 ${m.court}</span>
-                                <span class="${isLive ? 'text-white bg-red-600 px-2 rounded' : ''}">${m.status}</span>
-                            </div>
-                            <div class="text-emerald-500/80 uppercase tracking-widest">👤 REF: ${m.ref}</div>
+                        <div class="text-4xl md:text-9xl font-black italic leading-none ${isLive && isCritical ? 'text-yellow-400' : ''}">${m.scoreA}:${m.scoreB}</div>
+                        <div class="mt-6 flex flex-col items-center gap-2 text-[10px] md:text-sm font-bold text-slate-500 uppercase tracking-widest">
+                            <div class="flex items-center gap-4"><span>🕒 ${m.time}</span><span>📍 ${m.court}</span><span class="${isLive ? 'text-white bg-red-600 px-2 rounded' : ''}">${m.status}</span></div>
+                            <div class="text-emerald-500/80">👤 REF: ${m.ref}</div>
                         </div>
                     </div>
-                    
                     <div class="flex-1 text-left text-2xl md:text-5xl font-black leading-tight break-words pl-4 md:pl-10">${m.teamB}</div>
                 </div>`;
             }).join('');
         }
 
-        // --- PAGE 2: 標題顯示與男雙冠亞決算 ---
+        // --- PAGE 2: 顯示晉級名額 + 完賽反白 ---
         function renderStandings() {
             const container = document.getElementById('page-standing');
             const configs = [{title:"男雙",type:"男雙",sub:"M",top:2},{title:"女雙 A",type:"女雙",sub:"A",top:2},{title:"女雙 B",type:"女雙",sub:"B",top:2},{title:"混雙 A",type:"混雙",sub:"A",top:2},{title:"混雙 B",type:"混雙",sub:"B",top:1},{title:"混雙 C",type:"混雙",sub:"C",top:1}];
@@ -153,24 +141,29 @@
 
                 return `<div class="bg-slate-900 rounded-[2.5rem] p-8 border border-white/5 shadow-2xl">
                     <div class="flex justify-between items-center mb-8">
-                        <span class="text-2xl font-black text-emerald-400 italic">${cfg.title}</span>
+                        <div class="flex flex-col">
+                            <span class="text-2xl font-black text-emerald-400 italic">${cfg.title}</span>
+                            <span class="text-[10px] text-slate-500 font-black">晉級名額：前 ${cfg.top} 名</span>
+                        </div>
                         <span class="text-[10px] font-black text-slate-600 px-3 py-1 bg-white/5 rounded-full">${isAllFinished ? '🏁 結算完成' : '🕒 賽事進行中'}</span>
                     </div>
                     <table class="w-full">
                         <thead class="text-[10px] font-black text-slate-500 border-b border-white/10 uppercase">
-                            <tr><th class="text-left pb-4">選手</th><th class="text-right pb-4">勝場 (W)</th><th class="text-right pb-4 pl-4">積分 (PTS)</th></tr>
+                            <tr><th class="text-left pb-4">選手</th><th class="text-right pb-4">勝 (W)</th><th class="text-right pb-4 pl-4">分 (PTS)</th></tr>
                         </thead>
                         ${sorted.map((d,i) => {
+                            const isQualified = i < cfg.top;
+                            const rowClass = isAllFinished ? (isQualified ? "qualified" : "eliminated") : "";
                             let tag = "";
-                            if(isAllFinished && i < cfg.top) {
-                                if(cfg.title === "男雙") {
-                                    tag = `<span class="ml-2 text-[10px] bg-yellow-500 text-black px-2 py-0.5 rounded">${i === 0 ? '冠軍' : '亞軍'}</span>`;
-                                } else {
-                                    tag = `<span class="ml-2 text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded">第 ${i+1} 名</span>`;
-                                }
+                            if(isAllFinished && isQualified) {
+                                tag = cfg.title === "男雙" ? `<span class="ml-2 text-[10px] bg-yellow-500 text-black px-2 py-0.5 rounded">${i === 0 ? '冠軍' : '亞軍'}</span>` 
+                                                           : `<span class="ml-2 text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded">第 ${i+1} 名</span>`;
                             }
-                            return `<tr class="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                <td class="py-5 font-black text-xl"><span class="text-slate-700 mr-3 text-sm">${d.no}</span>${d.name}${tag}</td>
+                            return `<tr class="border-b border-white/5 last:border-0 hover:bg-white/5 transition-all ${rowClass}">
+                                <td class="py-5 font-black text-xl flex items-center">
+                                    <span class="text-slate-700 mr-3 text-sm">${d.no}</span>
+                                    <span class="truncate max-w-[200px]">${d.name}</span>${tag}
+                                </td>
                                 <td class="text-right font-black text-emerald-400 text-xl">${d.win}</td>
                                 <td class="text-right text-slate-500 pl-4 font-black italic text-xl">${d.score}</td>
                             </tr>`;
@@ -180,24 +173,21 @@
             }).join('');
         }
 
-        // --- PAGE 3: 智慧對戰組合顯示 ---
+        // --- PAGE 3: 智慧對戰組合與文字清晰度優化 ---
         function buildSymmetricBox(m, label, type, curA, curB) {
             const isF = type === "final"; const isT = type === "third"; const isLive = m.status === '進行中';
-            
-            // 如果 Excel 沒填隊名，則使用傳入的自動判斷隊名
             let fA = (m.teamA === "TBD" || m.teamA.match(/組|第一|第二|勝者|敗者/)) ? curA : m.teamA;
             let fB = (m.teamB === "TBD" || m.teamB.match(/組|第一|第二|勝者|敗者/)) ? curB : m.teamB;
-
-            let s = "bg-slate-950 border-white/10"; if (isF) s = "final-gold"; if (isT) s = "bg-orange-950 border-orange-500/30"; if (isLive) s = isF ? "status-live-critical" : "status-live-normal"; 
+            let s = "bg-slate-950 border-white/10"; if (isF) s = "final-gold shadow-[0_0_80px_rgba(251,191,36,0.3)]"; if (isT) s = "bg-orange-950 border-orange-500/30"; if (isLive) s = isF ? "status-live-critical" : "status-live-normal"; 
             
-            return `<div class="w-96 rounded-[3rem] p-10 border-4 shadow-2xl transition-all ${s}">
-                <div class="text-xs font-black mb-8 flex justify-between uppercase tracking-widest items-center">
-                    <span class="${isLive || isF ? 'text-white' : 'text-slate-500'}">${label}</span>
+            return `<div class="w-[26rem] rounded-[3rem] p-10 border-4 shadow-2xl transition-all ${s}">
+                <div class="text-[10px] font-black mb-10 flex justify-between uppercase tracking-[0.2em] items-center">
+                    <span class="text-overlay ${isLive || isF ? 'text-white' : 'text-slate-500'}">${label}</span>
                     <span class="px-4 py-1 rounded-full ${isLive ? 'bg-white text-red-600 font-black' : 'bg-white/10 text-slate-500'}">${m.status}</span>
                 </div>
-                <div class="space-y-6 font-black text-4xl ${isF ? 'text-amber-950' : 'text-white'}">
-                    <div class="flex justify-between items-center"><span class="truncate w-56">${fA}</span><span>${m.scoreA}</span></div>
-                    <div class="flex justify-between items-center"><span class="truncate w-56">${fB}</span><span>${m.scoreB}</span></div>
+                <div class="space-y-6 font-black text-4xl">
+                    <div class="flex justify-between items-center"><span class="text-overlay truncate w-64">${fA}</span><span class="tabular-nums">${m.scoreA}</span></div>
+                    <div class="flex justify-between items-center"><span class="text-overlay truncate w-64">${fB}</span><span class="tabular-nums">${m.scoreB}</span></div>
                 </div>
             </div>`;
         }
@@ -207,32 +197,29 @@
             ["女雙", "混雙"].forEach(cat => {
                 let s1A, s1B, s2A, s2B;
                 if (cat === "女雙") {
-                    s1A = groupWinners["女雙A"]?.[0] || 'A組 第一'; s1B = groupWinners["女雙B"]?.[1] || 'B組 第二';
-                    s2A = groupWinners["女雙B"]?.[0] || 'B組 第一'; s2B = groupWinners["女雙A"]?.[1] || 'A組 第二';
+                    s1A = groupWinners["女雙A"]?.[0] || 'A組 第1'; s1B = groupWinners["女雙B"]?.[1] || 'B組 第2';
+                    s2A = groupWinners["女雙B"]?.[0] || 'B組 第1'; s2B = groupWinners["女雙A"]?.[1] || 'A組 第2';
                 } else {
-                    s1A = groupWinners["混雙A"]?.[0] || 'A組 第一'; s1B = groupWinners["混雙B"]?.[0] || 'B組 第一';
-                    s2A = groupWinners["混雙A"]?.[1] || 'A組 第二'; s2B = groupWinners["混雙C"]?.[0] || 'C組 第一';
+                    s1A = groupWinners["混雙A"]?.[0] || 'A組 第1'; s1B = groupWinners["混雙B"]?.[0] || 'B組 第1';
+                    s2A = groupWinners["混雙A"]?.[1] || 'A組 第2'; s2B = groupWinners["混雙C"]?.[0] || 'C組 第1';
                 }
-                
                 const s1 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("1")) || {teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
                 const s2 = allData.find(m => m.type.includes(cat) && m.type.match(/四強|SF/i) && m.id.includes("2")) || {teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
                 const f = allData.find(m => m.type.includes(cat) && m.type.match(/決賽/i) && !m.type.includes("季殿")) || {teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
                 const t = allData.find(m => m.type.includes(cat) && m.type.match(/季殿/)) || {teamA:"TBD",teamB:"TBD",scoreA:0,scoreB:0,status:"待賽"};
-
-                // 冠亞/季殿 隊伍智慧判斷
                 const getWinner = (m, def) => m.status === "已結束" ? (m.scoreA > m.scoreB ? m.teamA : m.teamB) : def;
                 const getLoser = (m, def) => m.status === "已結束" ? (m.scoreA > m.scoreB ? m.teamB : m.teamA) : def;
-
-                const win1 = getWinner(s1, "SF1 勝者"); const win2 = getWinner(s2, "SF2 勝者");
-                const lose1 = getLoser(s1, "SF1 敗者"); const lose2 = getLoser(s2, "SF2 敗者");
+                const win1 = getWinner(s1, "SF1 勝方"); const win2 = getWinner(s2, "SF2 勝方");
+                const lose1 = getLoser(s1, "SF1 敗方"); const lose2 = getLoser(s2, "SF2 敗方");
 
                 flow.innerHTML += `<div class="relative py-10">
-                    <h3 class="text-center font-black text-6xl md:text-8xl text-white mb-32 italic uppercase tracking-tighter">${cat} Finals</h3>
-                    <div class="flex items-center gap-16 md:gap-32 relative">
+                    <h3 class="text-center font-black text-6xl md:text-8xl text-white mb-32 italic uppercase tracking-tighter">${cat} 系列總決賽</h3>
+                    <div class="flex items-center gap-16 md:gap-24 relative">
                         <div>${buildSymmetricBox(s1, "Semi-Final 1", "normal", s1A, s1B)}</div>
                         <div class="flex flex-col items-center gap-28 relative">
-                            ${buildSymmetricBox(f, "👑 CHAMPIONSHIP", "final", win1, win2)}
-                            ${buildSymmetricBox(t, "🥉 3rd Place Match", "third", lose1, lose2)}
+                            <div class="h-1 w-[200%] bg-emerald-500/10 absolute top-1/2 -z-10 blur-xl"></div>
+                            ${buildSymmetricBox(f, "👑 FINAL CHAMPION", "final", win1, win2)}
+                            ${buildSymmetricBox(t, "🥉 3rd Place", "third", lose1, lose2)}
                         </div>
                         <div>${buildSymmetricBox(s2, "Semi-Final 2", "normal", s2A, s2B)}</div>
                     </div>
